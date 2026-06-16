@@ -1,0 +1,50 @@
+model_list:
+  # Claude Sonnet — orchestrator (main Claude Code traffic)
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # scout — file exploration & searches
+  - model_name: scout
+    litellm_params:
+      model: gemini/gemini-2.0-flash
+      api_key: os.environ/GEMINI_API_KEY
+
+  # runner — fast parallel tasks
+  - model_name: runner
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+
+  # thinker — deep reasoning & first review pass
+  - model_name: thinker
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+
+  # builder — full-stack implementation
+  - model_name: builder
+    litellm_params:
+      model: openrouter/qwen/qwen-2.5-coder-32b-instruct
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  # writer — non-critical text (commit messages, changelogs)
+  - model_name: writer
+    litellm_params:
+      model: openrouter/mistralai/mistral-7b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  # critic — deep architecture & security review [optional]
+  - model_name: critic
+    litellm_params:
+      model: anthropic/claude-opus-4-8
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 60
+
+general_settings:
+  master_key: sk-litellm-local
+  port: 4000

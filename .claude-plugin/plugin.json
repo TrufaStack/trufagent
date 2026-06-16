@@ -1,0 +1,14 @@
+{
+  "name": "trufagent",
+  "version": "0.1.0",
+  "description": "Multi-agent development framework for Claude Code. Manages a fleet of specialized sub-agents routed via LiteLLM with persistent project context and structured workflow.",
+  "author": "TrufaStack",
+  "license": "MIT",
+  "homepage": "https://github.com/TrufaStack/trufagent",
+  "skills": [
+    "trufagent-setup",
+    "trufagent-init",
+    "trufagent-config",
+    "trufagent-status"
+  ]
+}
