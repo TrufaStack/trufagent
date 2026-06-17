@@ -17,10 +17,10 @@ model_list:
       model: groq/llama-3.3-70b-versatile
       api_key: os.environ/GROQ_API_KEY
 
-  # thinker — deep reasoning & first review pass
+  # thinker — deep reasoning, debugging, algorithm design (NOT code review)
   - model_name: thinker
     litellm_params:
-      model: deepseek/deepseek-chat
+      model: deepseek/deepseek-v4-flash
       api_key: os.environ/DEEPSEEK_API_KEY
 
   # builder — full-stack implementation
@@ -29,16 +29,22 @@ model_list:
       model: openrouter/qwen/qwen-2.5-coder-32b-instruct
       api_key: os.environ/OPENROUTER_API_KEY
 
+  # reviewer — first-pass code review (logic, bugs, types, conventions)
+  - model_name: reviewer
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
   # writer — non-critical text (commit messages, changelogs)
   - model_name: writer
     litellm_params:
       model: openrouter/mistralai/mistral-7b-instruct:free
       api_key: os.environ/OPENROUTER_API_KEY
 
-  # critic — deep architecture & security review [optional]
+  # critic — deep architecture & security review [optional, Claude Sonnet default]
   - model_name: critic
     litellm_params:
-      model: anthropic/claude-opus-4-8
+      model: anthropic/claude-sonnet-4-6
       api_key: os.environ/ANTHROPIC_API_KEY
 
 litellm_settings:

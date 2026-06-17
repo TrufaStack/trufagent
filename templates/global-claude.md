@@ -1,54 +1,61 @@
-# trufagent — Framework Global
+# trufagent — Global Framework
 
-## Fleet de Agentes
+## Agent Fleet
 
-| Agente | Modelo | Cuándo usarlo |
-|--------|--------|---------------|
-| `scout` | gemini-flash | Exploración: leer archivos, grep, listar directorios, parsear |
-| `runner` | groq-llama | Velocidad: tareas paralelas independientes, conversiones rápidas |
-| `thinker` | deepseek-v3 | Razonamiento profundo: debugging, algoritmos, arquitectura, 1er review |
-| `builder` | qwen-coder | Implementación: componentes, APIs, CRUD, features completas |
-| `writer` | mistral-free | Texto no crítico: commit messages, changelogs |
-| `critic` | claude-opus-4-8 | Review profundo: arquitectura, seguridad, decisiones irreversibles [opcional] |
+| Agent | Model | When to use |
+|-------|-------|-------------|
+| `scout` | gemini-flash | Exploration: read files, grep, list directories, parse logs |
+| `runner` | groq-llama | Speed: independent parallel tasks, fast conversions |
+| `thinker` | deepseek-v4-flash | Deep reasoning: debugging root causes, algorithm design, architecture decisions |
+| `builder` | qwen-coder | Implementation: components, APIs, CRUD, full features |
+| `reviewer` | claude-sonnet | First-pass code review: logic, bugs, types, conventions |
+| `writer` | mistral-free | Non-critical text: commit messages, changelogs |
+| `critic` | claude-sonnet | Deep architectural review: security, irreversibility, coupling [optional] |
 
-**Orquestador:** Claude Sonnet — toma decisiones de delegación, maneja contexto completo, segunda pasada de review, escribe commits, documentación importante.
+**Orchestrator:** Claude Sonnet — makes delegation decisions, holds full project context, final review pass, writes commits, handles important documentation.
 
-## Delegación
+## Delegation
 
-Siempre anuncio antes de delegar:
-> `→ delegando a [agente] porque [razón]`
+Always announce before delegating:
+> `→ delegating to [agent] because [reason]`
 
 ## Workflow
 
-**Cambio simple** (1 archivo, sin DB, sin nueva ruta):
+**Simple change** (single file, no DB, no new route):
 ```
-Implement → Review (thinker → Claude) → Commit
-```
-
-**Feature nueva** (migración DB, integración externa, múltiples módulos):
-```
-Brainstorm → Spec → Implement → Review (thinker → critic → Claude) → Commit
+Implement (builder) → Review (reviewer → Claude) → Commit
 ```
 
-**Arquitectura mayor** (decisión irreversible, auth, prod):
+**New feature** (DB migration, external integration, multiple modules):
 ```
-Brainstorm → Spec → Implement → Review (thinker → critic → Claude) → /code-review ultra → Commit
+Brainstorm → Spec → Design (thinker) → Implement (builder) → Review (reviewer → critic → Claude) → Commit
 ```
+
+**Architecture change** (irreversible decision, auth, prod):
+```
+Brainstorm → Spec → Design (thinker) → Implement (builder) → Review (reviewer → critic → Claude) → /code-review ultra → Commit
+```
+
+## Fleet configuration modes
+
+- **Recommended** — multi-provider, optimized cost/quality (default)
+- **Full-stack Claude** — single Anthropic API key, haiku/sonnet/opus tiers
+- **Custom** — each agent configured individually via `/trufagent:config`
 
 ## Git
 
-- **Usuario hace:** branches (`git checkout -b`), push, pull, merge
-- **Claude hace:** `git add` (archivos específicos, nunca `-A`) + `git commit`
+- **User does:** branches (`git checkout -b`), push, pull, merge
+- **Claude does:** `git add` (specific files, never `-A`) + `git commit`
 
-## Seguridad
+## Security
 
-- `reset --hard`, `branch -D`, drop table, `rm -rf` → confirmación explícita del usuario
-- Cambios en auth, `.env`, configuración de producción → confirmación explícita del usuario
-- `writer` solo toca `.md` y mensajes de commit, nunca código fuente
-- Ningún sub-agente hace commits — solo Claude directamente
+- `reset --hard`, `branch -D`, drop table, `rm -rf` → explicit user confirmation required
+- Changes to auth, `.env`, production config → explicit user confirmation required
+- `writer` only touches `.md` files and commit messages, never source code
+- No sub-agent makes commits — only Claude directly
 
-## Inicio de cada sesión
+## Session start
 
-1. Leer `CLAUDE.md` del proyecto activo
-2. Leer `docs/context/state.md`
-3. Si `docs/context/pending-updates.md` tiene contenido → proponer actualización de `state.md` antes de empezar
+1. Read project `CLAUDE.md`
+2. Read `docs/context/state.md`
+3. If `docs/context/pending-updates.md` has content → propose `state.md` update before starting work
