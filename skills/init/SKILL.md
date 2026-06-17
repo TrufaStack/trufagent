@@ -122,6 +122,8 @@ Write the Q4 answer as `docs/context/decisions/technical/[date]-initial.md`.
 
 ## Final output
 
+Print:
+
 ```
 Context system initialized.
 
@@ -136,3 +138,30 @@ Context system initialized.
 At the start of each session, these files will be read automatically.
 If commits happened between sessions, I will propose updating state.md before starting work.
 ```
+
+Then open the dashboard so the user can verify or complete fleet configuration:
+
+```
+Opening trufagent dashboard…
+```
+
+Execute dashboard launch inline:
+
+1. Check if server already running: read `~/.trufagent/ui.pid`, test with `kill -0 $PID 2>/dev/null`
+2. If not running, find server path:
+   ```bash
+   UI_DIR="$(find ~/.claude -name 'server.py' -path '*/trufagent/ui/*' 2>/dev/null | head -1 | xargs dirname)"
+   ```
+   If `UI_DIR` is empty, skip dashboard launch and tell the user: "Run /trufagent:setup first to install the dashboard."
+3. Launch server:
+   ```bash
+   python3 "$UI_DIR/server.py" &
+   ```
+4. Wait up to 15 × 0.3s for it to respond:
+   ```bash
+   for i in $(seq 1 15); do sleep 0.3; curl -sf http://localhost:7433 > /dev/null 2>&1 && break; done
+   ```
+5. Open browser:
+   ```bash
+   xdg-open http://localhost:7433 2>/dev/null || open http://localhost:7433 2>/dev/null || echo "Open http://localhost:7433 in your browser"
+   ```

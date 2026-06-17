@@ -193,11 +193,29 @@ async def update_agent(agent_name: str, body: AgentUpdate):
 
 @app.post("/api/fleet/{agent_name}/test")
 async def test_agent(agent_name: str, body: AgentTest):
+    import litellm as _litellm
+    env = {**read_keys()}
     if body.key_value and body.key_name:
-        set_key(str(ENV_FILE), body.key_name, body.key_value)
-        os.environ[body.key_name] = body.key_value
-    result = await ping_agent(agent_name, body.model)
-    return result
+        env[body.key_name] = body.key_value
+    key_val = env.get(body.key_name, os.environ.get(body.key_name, "")) if body.key_name else ""
+    start = time.monotonic()
+    try:
+        await _litellm.acompletion(
+            model=body.model,
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=1,
+            api_key=key_val or None,
+        )
+        latency = round((time.monotonic() - start) * 1000)
+        if body.key_value and body.key_name:
+            set_key(str(ENV_FILE), body.key_name, body.key_value)
+            os.environ[body.key_name] = body.key_value
+        return {"name": agent_name, "model": body.model, "status": "reachable", "latency_ms": latency}
+    except Exception as e:
+        msg = str(e)
+        if len(msg) > 200:
+            msg = msg[:200]
+        return {"name": agent_name, "model": body.model, "status": "error", "latency_ms": None, "error": msg}
 
 
 @app.get("/api/config")

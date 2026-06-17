@@ -1,5 +1,5 @@
 ---
-description: Use this skill to set up the trufagent framework globally on this machine — configures LiteLLM, API keys, agent fleet, global CLAUDE.md, and hooks. Run once per machine. Invoke with /trufagent:setup or when the user says "setup trufagent", "configure trufagent", or "install trufagent fleet".
+description: Use this skill to set up the trufagent framework globally on this machine — installs LiteLLM, copies agent files, configures hooks, and opens the dashboard for fleet configuration. Run once per machine. Invoke with /trufagent:setup or when the user says "setup trufagent", "configure trufagent", or "install trufagent fleet".
 ---
 
 # trufagent:setup
@@ -8,103 +8,53 @@ Sets up the trufagent framework on this machine. Safe to re-run to reconfigure.
 
 ## What this skill does
 
-1. Asks which configuration mode to use
-2. Configures each agent role (recommended model shown, alternatives available)
-3. Writes `~/litellm-config.yaml`
+1. Installs LiteLLM proxy (with visible progress)
+2. Installs dashboard dependencies (with visible progress)
+3. Writes `~/litellm-config.yaml` base template
 4. Writes `~/.claude/CLAUDE.md` with fleet rules
 5. Copies agent files to `~/.claude/agents/`
 6. Configures PostToolUse and PreCompact hooks in `~/.claude/settings.json`
+7. Opens the dashboard for fleet and API key configuration
 
-## Step 1 — Check LiteLLM
+API keys and model choices are configured in the dashboard — not here.
+
+## Step 1 — Install LiteLLM proxy
 
 ```bash
 pip show litellm 2>/dev/null | head -1
 ```
 
-If not installed, inform the user to run `pip install litellm[proxy]` and restart setup.
+If not installed or version is outdated, install it with visible output:
 
-## Step 2 — Choose configuration mode
-
-Ask the user:
-
-```
-How would you like to configure your fleet?
-
-  1. Recommended  — multi-provider, optimized cost/quality balance
-       scout    → Gemini Flash          ($0.04/M — exploration)
-       runner   → Groq Llama 3.3 70B   ($0.05/M — parallel speed)
-       thinker  → DeepSeek V4 Flash    ($0.14/M — deep reasoning)
-       builder  → Qwen Coder 2.5 32B   ($0.50/M — implementation)
-       reviewer → Claude Sonnet        ($3.00/M — code review)
-       writer   → Mistral Free         ($0.00/M — commit messages)
-       critic   → Claude Sonnet        ($3.00/M — arch review)
-
-  2. Full-stack Claude  — single Anthropic API key, simplest setup
-       scout / runner / writer → claude-haiku-4-5
-       thinker / builder       → claude-sonnet-4-6
-       reviewer / critic       → claude-sonnet-4-6
-
-  3. Custom  — configure each agent individually
-
-Choose [1/2/3]:
+```bash
+echo "Installing LiteLLM proxy — this may take a few minutes…"
+pip install "litellm[proxy]"
+echo "LiteLLM installed."
 ```
 
-### Mode 1 — Recommended
+Do NOT use `-q`. The user needs to see progress since this can take 2–5 minutes.
 
-For each agent below, ask for the API key of its provider.
-Show "Use the recommended model? [Y/n]" — if n, show alternatives.
+## Step 2 — Install dashboard dependencies
 
-| Agent | Role | Default model | Provider | Required |
-|-------|------|--------------|----------|----------|
-| scout | File exploration, grep, parsing | gemini/gemini-2.0-flash | Google AI Studio | Yes |
-| runner | Fast parallel tasks | groq/llama-3.3-70b-versatile | Groq | No |
-| thinker | Deep reasoning, debugging, algorithm design | deepseek/deepseek-v4-flash | DeepSeek | Yes |
-| builder | Full-stack implementation | openrouter/qwen/qwen-2.5-coder-32b-instruct | OpenRouter | Yes |
-| reviewer | First-pass code review | anthropic/claude-sonnet-4-6 | Anthropic | Yes |
-| writer | Commit messages, changelogs | openrouter/mistralai/mistral-7b-instruct:free | OpenRouter | No |
-| critic | Architectural review | anthropic/claude-sonnet-4-6 | Anthropic | No |
+```bash
+python3 -c "import fastapi, uvicorn, yaml, httpx, dotenv" 2>/dev/null
+```
 
-**Alternatives per role:**
+If any import fails:
 
-scout: `anthropic/claude-haiku-4-5`, `openai/gpt-4o-mini`, custom
-runner: `anthropic/claude-haiku-4-5`, `openai/gpt-4o-mini`, custom
-thinker: `deepseek/deepseek-v4-pro` (more powerful, 12x cost), `anthropic/claude-sonnet-4-6`, `openai/gpt-4o`, custom. Note: `deepseek/deepseek-chat` is deprecated July 24, 2026 — do not use.
-builder: `deepseek/deepseek-chat`, `openai/gpt-4o`, `mistral/codestral-latest`, custom
-reviewer: `anthropic/claude-opus-4-8` (higher quality, 5x cost), `openai/gpt-4o`, custom
-critic: `anthropic/claude-opus-4-8` (highest quality, 5x cost), `openai/gpt-4o`, custom
-writer: `anthropic/claude-haiku-4-5`, `openai/gpt-4o-mini`, custom
+```bash
+echo "Installing dashboard dependencies…"
+pip install fastapi uvicorn pyyaml httpx python-dotenv
+echo "Dashboard dependencies installed."
+```
 
-### Mode 2 — Full-stack Claude
-
-Only ask for `ANTHROPIC_API_KEY`. Map all agents:
-- scout, runner, writer → `anthropic/claude-haiku-4-5`
-- thinker, builder → `anthropic/claude-sonnet-4-6`
-- reviewer, critic → `anthropic/claude-sonnet-4-6`
-
-### Mode 3 — Custom
-
-Walk through each agent one by one. Show role description, ask for model string and API key.
+Do NOT use `-q`.
 
 ## Step 3 — Write ~/litellm-config.yaml
 
-Generate from the choices made. One `model_name` entry per configured agent. Always include `claude-sonnet-4-6` as the orchestrator entry.
+Read `templates/litellm-config.yaml` from the plugin directory and write it to `~/litellm-config.yaml`.
 
-```yaml
-model_list:
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
-  [... one entry per configured agent ...]
-
-litellm_settings:
-  drop_params: true
-  request_timeout: 60
-
-general_settings:
-  master_key: sk-litellm-local
-  port: 4000
-```
+If the file already exists, ask: "A litellm-config.yaml already exists. Overwrite it? [y/N]". Only overwrite if the user confirms.
 
 ## Step 4 — Write ~/.claude/CLAUDE.md
 
@@ -113,8 +63,11 @@ If a CLAUDE.md already exists with other content, append the trufagent section b
 
 ## Step 5 — Copy agent files to ~/.claude/agents/
 
+```bash
+mkdir -p ~/.claude/agents
+```
+
 Copy all `.md` files from the plugin's `agents/` directory to `~/.claude/agents/`.
-Skip optional agents that were not configured.
 
 ## Step 6 — Configure hooks in ~/.claude/settings.json
 
@@ -140,31 +93,43 @@ Read current `~/.claude/settings.json`, add or merge:
 }
 ```
 
-## Step 7 — Final output
+## Step 7 — Open dashboard
+
+Tell the user:
 
 ```
-trufagent setup complete.
+trufagent installed. Opening dashboard to configure your fleet and API keys…
+```
 
-Fleet configured ([mode name]):
-  scout    → [model]
-  runner   → [model]
-  thinker  → [model]
-  builder  → [model]
-  reviewer → [model]
-  writer   → [model]
-  critic   → [model]
+Then execute all steps from the dashboard skill inline:
 
-To start using trufagent:
+1. Check if server is already running (read `~/.trufagent/ui.pid`, test with `kill -0`)
+2. If not running, find the `server.py` path:
+   ```bash
+   UI_DIR="$(find ~/.claude -name 'server.py' -path '*/trufagent/ui/*' 2>/dev/null | head -1 | xargs dirname)"
+   ```
+3. Launch the server in the background:
+   ```bash
+   python3 "$UI_DIR/server.py" &
+   ```
+4. Wait for it to respond (poll up to 15 × 0.3s):
+   ```bash
+   for i in $(seq 1 15); do sleep 0.3; curl -sf http://localhost:7433 > /dev/null 2>&1 && break; done
+   ```
+5. Open the browser:
+   ```bash
+   xdg-open http://localhost:7433 2>/dev/null || open http://localhost:7433 2>/dev/null || echo "Open http://localhost:7433 in your browser"
+   ```
 
-  Terminal 1 — start LiteLLM proxy:
-    export ANTHROPIC_API_KEY="sk-ant-..."
-    [other keys as configured]
-    litellm --config ~/litellm-config.yaml
+Final message:
 
-  Terminal 2 — start Claude Code:
-    export ANTHROPIC_BASE_URL="http://localhost:4000"
-    export ANTHROPIC_AUTH_TOKEN="sk-litellm-local"
-    claude
+```
+Dashboard open at http://localhost:7433
+
+  fleet    → configure agents and API keys
+  status   → real-time health check for all agents
+  litellm  → start/stop the LiteLLM proxy
+  projects → initialize and manage project context
 
 Next: cd into your project and run /trufagent:init
 ```

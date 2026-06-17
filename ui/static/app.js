@@ -93,6 +93,10 @@ let fleetAgents = [];
 let activeAgent = null;
 let testedAgents = new Set();
 
+function agentsForKey(keyName) {
+  return fleetAgents.filter(a => a.key_name === keyName).map(a => a.name);
+}
+
 async function loadFleet() {
   const res = await fetch('/api/fleet');
   const data = await res.json();
@@ -164,10 +168,13 @@ function renderAgentDetail(agent) {
       </div>
 
       <div class="field">
-        <label class="field-label">API key value</label>
+        <label class="field-label">API key value
+          ${(() => { const shared = agentsForKey(agent.key_name).filter(n => n !== agent.name); return shared.length ? `<span style="font-weight:400;color:var(--primary);margin-left:6px"><i class="fa-solid fa-link" style="font-size:9px"></i> shared with ${shared.join(', ')}</span>` : ''; })()}
+        </label>
         <div class="field-row">
           <input class="field-input" id="inp-keyval-${agent.name}" type="password"
-            placeholder="${agent.key_configured ? '••••••••••••••••••••' : 'Enter key value'}">
+            placeholder="${agent.key_configured ? '••••••••••••••••••••' : 'Enter key value'}"
+            oninput="syncSharedKey('${agent.name}', '${agent.key_name}', this.value)">
           <button class="btn btn-ghost" style="flex-shrink:0" onclick="toggleKeyVisibility('${agent.name}')">
             <i class="fa-solid fa-eye" id="eye-${agent.name}"></i>
           </button>
@@ -203,6 +210,14 @@ function renderAgentDetail(agent) {
   });
   keyInp.addEventListener('input', () => { validateField(agent.name); lockSave(agent.name); });
   document.getElementById(`inp-keyval-${agent.name}`).addEventListener('input', () => lockSave(agent.name));
+}
+
+function syncSharedKey(agentName, keyName, value) {
+  if (!keyName) return;
+  fleetAgents.filter(a => a.key_name === keyName && a.name !== agentName).forEach(a => {
+    const inp = document.getElementById(`inp-keyval-${a.name}`);
+    if (inp) inp.value = value;
+  });
 }
 
 function validateField(agentName) {
