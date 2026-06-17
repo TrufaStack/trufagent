@@ -11,6 +11,7 @@
 | `reviewer` | claude-sonnet | First-pass code review: logic, bugs, types, conventions |
 | `writer` | mistral-free | Non-critical text: commit messages, changelogs |
 | `critic` | claude-sonnet | Deep architectural review: security, irreversibility, coupling [optional] |
+| `designer` | claude-sonnet | UI/UX design: pages, components, mockups, visual redesigns |
 
 **Orchestrator:** Claude Sonnet — makes delegation decisions, holds full project context, final review pass, writes commits, handles important documentation.
 
