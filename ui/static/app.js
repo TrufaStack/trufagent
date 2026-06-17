@@ -11,15 +11,65 @@ const AGENT_META = {
   critic:   { icon: 'fa-shield-halved',    color: '#f87171', role: 'critique',  desc: 'Deep architectural review: security, irreversibility, coupling. High-stakes changes only.' },
 };
 
-// ── Known model suggestions ────────────────────────────────────────────────
-const MODEL_SUGGESTIONS = [
-  'gemini/gemini-2.0-flash', 'gemini/gemini-2.5-pro',
-  'groq/llama-3.3-70b-versatile', 'groq/llama-3.1-8b-instant',
-  'deepseek/deepseek-v4-flash', 'deepseek/deepseek-v4-pro', 'deepseek/deepseek-chat',
-  'openrouter/qwen/qwen-2.5-coder-32b-instruct', 'openrouter/qwen/qwen3-coder',
-  'openrouter/mistralai/mistral-7b-instruct:free', 'mistral/codestral-latest',
-  'anthropic/claude-sonnet-4-6', 'anthropic/claude-haiku-4-5', 'anthropic/claude-opus-4-8',
-  'openai/gpt-4o', 'openai/gpt-4o-mini',
+// ── Provider catalog ───────────────────────────────────────────────────────
+const PROVIDER_CATALOG = [
+  {
+    provider: 'Google',
+    keyUrl: 'https://aistudio.google.com/apikey',
+    models: [
+      { name: 'Gemini 2.0 Flash', model: 'gemini/gemini-2.0-flash',  cost: '$0.04/M', keyName: 'GEMINI_API_KEY',    rec: ['scout'] },
+      { name: 'Gemini 2.5 Pro',   model: 'gemini/gemini-2.5-pro',    cost: '$1.25/M', keyName: 'GEMINI_API_KEY',    rec: [] },
+    ],
+  },
+  {
+    provider: 'Groq',
+    keyUrl: 'https://console.groq.com/keys',
+    models: [
+      { name: 'Llama 3.3 70B', model: 'groq/llama-3.3-70b-versatile', cost: '$0.05/M', keyName: 'GROQ_API_KEY', rec: ['runner'] },
+      { name: 'Llama 3.1 8B',  model: 'groq/llama-3.1-8b-instant',    cost: 'free',    keyName: 'GROQ_API_KEY', rec: [] },
+    ],
+  },
+  {
+    provider: 'DeepSeek',
+    keyUrl: 'https://platform.deepseek.com/api_keys',
+    models: [
+      { name: 'DeepSeek V4 Flash', model: 'deepseek/deepseek-v4-flash', cost: '$0.14/M', keyName: 'DEEPSEEK_API_KEY', rec: ['thinker'] },
+      { name: 'DeepSeek V4 Pro',   model: 'deepseek/deepseek-v4-pro',   cost: '$1.68/M', keyName: 'DEEPSEEK_API_KEY', rec: [] },
+    ],
+  },
+  {
+    provider: 'OpenRouter',
+    keyUrl: 'https://openrouter.ai/keys',
+    models: [
+      { name: 'Qwen 2.5 Coder 32B', model: 'openrouter/qwen/qwen-2.5-coder-32b-instruct',   cost: '$0.50/M', keyName: 'OPENROUTER_API_KEY', rec: ['builder'] },
+      { name: 'Qwen3 Coder',         model: 'openrouter/qwen/qwen3-coder',                    cost: '$0.30/M', keyName: 'OPENROUTER_API_KEY', rec: [] },
+      { name: 'Mistral 7B Free',     model: 'openrouter/mistralai/mistral-7b-instruct:free', cost: 'free',    keyName: 'OPENROUTER_API_KEY', rec: ['writer'] },
+    ],
+  },
+  {
+    provider: 'Anthropic',
+    keyUrl: 'https://console.anthropic.com/settings/api-keys',
+    models: [
+      { name: 'Claude Sonnet 4.6', model: 'anthropic/claude-sonnet-4-6', cost: '$3.00/M',  keyName: 'ANTHROPIC_API_KEY', rec: ['reviewer', 'critic'] },
+      { name: 'Claude Haiku 4.5',  model: 'anthropic/claude-haiku-4-5',  cost: '$0.25/M',  keyName: 'ANTHROPIC_API_KEY', rec: [] },
+      { name: 'Claude Opus 4.8',   model: 'anthropic/claude-opus-4-8',   cost: '$15.00/M', keyName: 'ANTHROPIC_API_KEY', rec: [] },
+    ],
+  },
+  {
+    provider: 'OpenAI',
+    keyUrl: 'https://platform.openai.com/api-keys',
+    models: [
+      { name: 'GPT-4o',      model: 'openai/gpt-4o',      cost: '$2.50/M', keyName: 'OPENAI_API_KEY', rec: [] },
+      { name: 'GPT-4o Mini', model: 'openai/gpt-4o-mini', cost: '$0.15/M', keyName: 'OPENAI_API_KEY', rec: [] },
+    ],
+  },
+  {
+    provider: 'Mistral',
+    keyUrl: 'https://console.mistral.ai/api-keys',
+    models: [
+      { name: 'Codestral', model: 'mistral/codestral-latest', cost: '$0.30/M', keyName: 'MISTRAL_API_KEY', rec: [] },
+    ],
+  },
 ];
 
 // ── Key name auto-suggest from model string ────────────────────────────────
@@ -150,13 +200,14 @@ function renderAgentDetail(agent) {
 
       <div class="field">
         <label class="field-label">Model string</label>
-        <input class="field-input" id="inp-model-${agent.name}" type="text"
-          value="${agent.model || ''}"
-          placeholder="provider/model-name (e.g. deepseek/deepseek-v4-flash)"
-          list="model-suggestions">
-        <datalist id="model-suggestions">
-          ${MODEL_SUGGESTIONS.map(m => `<option value="${m}">`).join('')}
-        </datalist>
+        <div class="model-field-row">
+          <input class="field-input" id="inp-model-${agent.name}" type="text"
+            value="${agent.model || ''}"
+            placeholder="provider/model-name (e.g. deepseek/deepseek-v4-flash)">
+          <button class="btn-choose-model" onclick="openModelPicker('${agent.name}')">
+            <i class="fa-solid fa-grid-2" style="font-size:9px"></i>Choose
+          </button>
+        </div>
         <div class="field-hint info" id="hint-model-${agent.name}"><i class="fa-solid fa-circle-info"></i>Any valid LiteLLM model string</div>
       </div>
 
@@ -547,6 +598,137 @@ function connectSSE() {
     }
   };
   es.onerror = () => { setTimeout(connectSSE, 5000); };
+}
+
+// ── Model picker ────────────────────────────────────────────────────────────
+let pickerTargetAgent = null;
+let pickerSelectedModel = null;
+
+function openModelPicker(agentName) {
+  pickerTargetAgent = agentName;
+  pickerSelectedModel = document.getElementById(`inp-model-${agentName}`)?.value || null;
+  renderPickerModal();
+  document.getElementById('model-picker-root').style.display = 'block';
+  setTimeout(() => document.getElementById('picker-search')?.focus(), 50);
+}
+
+function closeModelPicker() {
+  document.getElementById('model-picker-root').style.display = 'none';
+  pickerTargetAgent = null;
+  pickerSelectedModel = null;
+}
+
+function confirmModelPicker() {
+  if (!pickerTargetAgent || !pickerSelectedModel) return;
+  const modelInp = document.getElementById(`inp-model-${pickerTargetAgent}`);
+  const keyInp = document.getElementById(`inp-keyname-${pickerTargetAgent}`);
+  if (!modelInp) return;
+  modelInp.value = pickerSelectedModel;
+  const entry = PROVIDER_CATALOG.flatMap(p => p.models).find(m => m.model === pickerSelectedModel);
+  if (entry && keyInp && !keyInp.value) keyInp.value = entry.keyName;
+  modelInp.dispatchEvent(new Event('input'));
+  closeModelPicker();
+}
+
+function useCustomModel() {
+  const val = document.getElementById('picker-custom-inp')?.value.trim();
+  if (!val) return;
+  pickerSelectedModel = val;
+  confirmModelPicker();
+}
+
+function pickerSelectCard(modelStr) {
+  pickerSelectedModel = modelStr;
+  document.querySelectorAll('.picker-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.model === modelStr);
+  });
+  document.getElementById('picker-confirm-btn').disabled = false;
+}
+
+function pickerSearch(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.picker-provider').forEach(section => {
+    let anyVisible = false;
+    section.querySelectorAll('.picker-card').forEach(card => {
+      const text = (card.dataset.model + ' ' + card.querySelector('.picker-card-name').textContent).toLowerCase();
+      const match = !q || text.includes(q);
+      card.classList.toggle('hidden', !match);
+      if (match) anyVisible = true;
+    });
+    section.classList.toggle('hidden', !anyVisible);
+  });
+}
+
+function renderPickerModal() {
+  const currentModel = pickerSelectedModel;
+  const sectionsHtml = PROVIDER_CATALOG.map(({ provider, keyUrl, models }) => {
+    const cardsHtml = models.map(({ name, model, cost, rec }) => {
+      const isFree = cost === 'free';
+      const recBadges = rec.map(r => `<span class="picker-badge picker-badge-rec">${r}</span>`).join('');
+      return `
+        <div class="picker-card${model === currentModel ? ' selected' : ''}"
+             data-model="${model}"
+             onclick="pickerSelectCard('${model}')">
+          <div class="picker-card-name">${name}</div>
+          <div class="picker-card-model">${model}</div>
+          <div class="picker-card-badges">
+            <span class="picker-badge picker-badge-cost${isFree ? ' free' : ''}">${cost}</span>
+            ${recBadges}
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="picker-provider">
+        <div class="picker-provider-label">
+          ${provider}
+          <a class="picker-key-link" href="${keyUrl}" target="_blank" rel="noopener">
+            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px"></i>get key
+          </a>
+        </div>
+        <div class="picker-grid">${cardsHtml}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('model-picker-root').innerHTML = `
+    <div class="picker-backdrop" onclick="if(event.target===this)closeModelPicker()">
+      <div class="picker-modal">
+        <div class="picker-header">
+          <div class="picker-title">
+            <i class="fa-solid fa-microchip" style="color:var(--primary);font-size:12px"></i>
+            Choose a model
+            <span class="picker-agent-chip">${pickerTargetAgent}</span>
+          </div>
+          <button class="picker-close" onclick="closeModelPicker()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="picker-search">
+          <div class="picker-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="picker-search" class="picker-search-input" type="text"
+              placeholder="Search models…" oninput="pickerSearch(this.value)" autocomplete="off">
+          </div>
+        </div>
+        <div class="picker-body">
+          ${sectionsHtml}
+          <div class="picker-custom">
+            <div class="picker-custom-label">Custom model</div>
+            <div class="picker-custom-row">
+              <input id="picker-custom-inp" class="picker-custom-input" type="text"
+                placeholder="provider/model-name  (e.g. ollama/llama3.2)"
+                onkeydown="if(event.key==='Enter')useCustomModel()">
+              <button class="picker-custom-use" onclick="useCustomModel()">Use this</button>
+            </div>
+          </div>
+        </div>
+        <div class="picker-footer">
+          <span class="picker-footer-hint">
+            <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>Key name auto-fills on selection
+          </span>
+          <button id="picker-confirm-btn" class="picker-confirm"
+            ${currentModel ? '' : 'disabled'}
+            onclick="confirmModelPicker()">Confirm selection</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────
