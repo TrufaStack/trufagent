@@ -94,6 +94,7 @@ let activeAgent = null;
 let testedAgents = new Set();
 
 function agentsForKey(keyName) {
+  if (!keyName) return [];
   return fleetAgents.filter(a => a.key_name === keyName).map(a => a.name);
 }
 
