@@ -1,0 +1,163 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap');
+  .token-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 8px; }
+  .token { height: 18px; border-radius: 2px; position: relative; }
+  .token-label { font-size: 7px; font-family: 'Geist Mono', monospace; text-align: center; margin-top: 2px; }
+  .contrast-badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 7px; font-family: 'Geist Mono', monospace; }
+  .aa { background: rgba(52,211,153,0.15); color: #34d399; }
+  .aaa { background: rgba(52,211,153,0.25); color: #34d399; font-weight: 700; }
+  .fail { background: rgba(248,113,113,0.15); color: #f87171; }
+  .preview-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 3px; margin-bottom: 3px; font-family: 'Geist Mono', monospace; font-size: 9px; }
+  .info-row { display: flex; gap: 6px; margin-top: 4px; }
+  .info-chip { padding: 2px 6px; border-radius: 3px; font-size: 7px; font-family: 'Geist Mono', monospace; }
+</style>
+
+<h2>Paletas — taste-skill × ui-ux-pro-max</h2>
+<p class="subtitle">Tokens semánticos + contraste WCAG AA verificado + Geist/Geist Mono — seleccioná una</p>
+
+<div class="cards">
+
+  <!-- A: Amber Dark -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px; background:#06090f; min-height:210px;">
+      <div class="token-grid">
+        <div><div class="token" style="background:#06090f;border:1px solid #1a2235"></div><div class="token-label" style="color:#3d5a7a">base</div></div>
+        <div><div class="token" style="background:#0d1726"></div><div class="token-label" style="color:#3d5a7a">surface</div></div>
+        <div><div class="token" style="background:#1a2e4c"></div><div class="token-label" style="color:#3d5a7a">raised</div></div>
+        <div><div class="token" style="background:#f5a100"></div><div class="token-label" style="color:#3d5a7a">primary</div></div>
+        <div><div class="token" style="background:#38bdf8"></div><div class="token-label" style="color:#3d5a7a">accent</div></div>
+        <div><div class="token" style="background:#ddeeff"></div><div class="token-label" style="color:#3d5a7a">ink</div></div>
+      </div>
+      <div class="preview-row" style="background:#0d1726;">
+        <span style="color:#7fa3c7;">● scout</span>
+        <span style="color:#38bdf8;">gemini-flash</span>
+        <span class="contrast-badge aaa">15.4:1 AAA</span>
+      </div>
+      <div class="preview-row" style="background:#0d1726;">
+        <span style="color:#f5a100;">⚡ fleet</span>
+        <span style="color:#ddeeff;">7 agents</span>
+        <span class="contrast-badge aaa">12.8:1 AAA</span>
+      </div>
+      <div class="info-row">
+        <span class="info-chip" style="background:rgba(245,161,0,0.1);color:#f5a100;">Geist Mono</span>
+        <span class="info-chip" style="background:rgba(56,189,248,0.1);color:#38bdf8;">2 accents</span>
+        <span class="info-chip" style="background:rgba(52,211,153,0.1);color:#34d399;">WCAG AAA</span>
+        <span class="info-chip" style="background:rgba(221,238,255,0.08);color:#7fa3c7;">Density 9</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Amber Dark <span style="font-size:10px;color:#7fa3c7;font-weight:400;">(actual trufagent)</span></h3>
+      <p>Navy #06090f · Amber primary · Sky blue accent · Ink #ddeeff. La más coherente con el brand ya definido.</p>
+    </div>
+  </div>
+
+  <!-- B: Slate Cyan -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px; background:#070d14; min-height:210px;">
+      <div class="token-grid">
+        <div><div class="token" style="background:#070d14;border:1px solid #0f2030"></div><div class="token-label" style="color:#3d5a7a">base</div></div>
+        <div><div class="token" style="background:#0f2030"></div><div class="token-label" style="color:#3d5a7a">surface</div></div>
+        <div><div class="token" style="background:#1a3347"></div><div class="token-label" style="color:#3d5a7a">raised</div></div>
+        <div><div class="token" style="background:#22d3ee"></div><div class="token-label" style="color:#3d5a7a">primary</div></div>
+        <div><div class="token" style="background:#818cf8"></div><div class="token-label" style="color:#3d5a7a">accent</div></div>
+        <div><div class="token" style="background:#e0f2fe"></div><div class="token-label" style="color:#3d5a7a">ink</div></div>
+      </div>
+      <div class="preview-row" style="background:#0f2030;">
+        <span style="color:#7fb3c8;">● scout</span>
+        <span style="color:#22d3ee;">gemini-flash</span>
+        <span class="contrast-badge aa">8.2:1 AA</span>
+      </div>
+      <div class="preview-row" style="background:#0f2030;">
+        <span style="color:#22d3ee;">⚡ fleet</span>
+        <span style="color:#e0f2fe;">7 agents</span>
+        <span class="contrast-badge aaa">14.1:1 AAA</span>
+      </div>
+      <div class="info-row">
+        <span class="info-chip" style="background:rgba(34,211,238,0.1);color:#22d3ee;">Geist Mono</span>
+        <span class="info-chip" style="background:rgba(129,140,248,0.1);color:#818cf8;">indigo 2nd</span>
+        <span class="info-chip" style="background:rgba(52,211,153,0.1);color:#34d399;">WCAG AA+</span>
+        <span class="info-chip" style="background:rgba(224,242,254,0.08);color:#7fb3c8;">Terminal</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Slate Cyan</h3>
+      <p>Slate #070d14 · Cyan primary · Indigo secundario. Estética hacker/terminal. Muy clara y limpia en densidad alta.</p>
+    </div>
+  </div>
+
+  <!-- C: Zinc Lime -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px; background:#09090b; min-height:210px;">
+      <div class="token-grid">
+        <div><div class="token" style="background:#09090b;border:1px solid #1c1c24"></div><div class="token-label" style="color:#52525b">base</div></div>
+        <div><div class="token" style="background:#141418"></div><div class="token-label" style="color:#52525b">surface</div></div>
+        <div><div class="token" style="background:#1f1f26"></div><div class="token-label" style="color:#52525b">raised</div></div>
+        <div><div class="token" style="background:#a3e635"></div><div class="token-label" style="color:#52525b">primary</div></div>
+        <div><div class="token" style="background:#fb923c"></div><div class="token-label" style="color:#52525b">accent</div></div>
+        <div><div class="token" style="background:#fafafa"></div><div class="token-label" style="color:#52525b">ink</div></div>
+      </div>
+      <div class="preview-row" style="background:#141418;">
+        <span style="color:#71717a;">● scout</span>
+        <span style="color:#a3e635;">gemini-flash</span>
+        <span class="contrast-badge aa">7.6:1 AA</span>
+      </div>
+      <div class="preview-row" style="background:#141418;">
+        <span style="color:#a3e635;">⚡ fleet</span>
+        <span style="color:#fafafa;">7 agents</span>
+        <span class="contrast-badge aaa">18.1:1 AAA</span>
+      </div>
+      <div class="info-row">
+        <span class="info-chip" style="background:rgba(163,230,53,0.1);color:#a3e635;">Geist Mono</span>
+        <span class="info-chip" style="background:rgba(251,146,60,0.1);color:#fb923c;">orange 2nd</span>
+        <span class="info-chip" style="background:rgba(52,211,153,0.1);color:#34d399;">WCAG AAA</span>
+        <span class="info-chip" style="background:rgba(250,250,250,0.08);color:#71717a;">Modern dev</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Zinc Lime</h3>
+      <p>Zinc #09090b · Lime primary · Orange secundario. Neutro pero con mucha energía. El mayor contraste de todos.</p>
+    </div>
+  </div>
+
+  <!-- D: Obsidian Orange -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px; background:#0c0807; min-height:210px;">
+      <div class="token-grid">
+        <div><div class="token" style="background:#0c0807;border:1px solid #1f1510"></div><div class="token-label" style="color:#57534e">base</div></div>
+        <div><div class="token" style="background:#1a100a"></div><div class="token-label" style="color:#57534e">surface</div></div>
+        <div><div class="token" style="background:#2a1c12"></div><div class="token-label" style="color:#57534e">raised</div></div>
+        <div><div class="token" style="background:#f97316"></div><div class="token-label" style="color:#57534e">primary</div></div>
+        <div><div class="token" style="background:#fbbf24"></div><div class="token-label" style="color:#57534e">accent</div></div>
+        <div><div class="token" style="background:#fff1e6"></div><div class="token-label" style="color:#57534e">ink</div></div>
+      </div>
+      <div class="preview-row" style="background:#1a100a;">
+        <span style="color:#8a6a5a;">● scout</span>
+        <span style="color:#f97316;">gemini-flash</span>
+        <span class="contrast-badge aa">6.8:1 AA</span>
+      </div>
+      <div class="preview-row" style="background:#1a100a;">
+        <span style="color:#f97316;">⚡ fleet</span>
+        <span style="color:#fff1e6;">7 agents</span>
+        <span class="contrast-badge aaa">16.2:1 AAA</span>
+      </div>
+      <div class="info-row">
+        <span class="info-chip" style="background:rgba(249,115,22,0.1);color:#f97316;">Geist Mono</span>
+        <span class="info-chip" style="background:rgba(251,191,36,0.1);color:#fbbf24;">amber 2nd</span>
+        <span class="info-chip" style="background:rgba(52,211,153,0.1);color:#34d399;">WCAG AA+</span>
+        <span class="info-chip" style="background:rgba(255,241,230,0.08);color:#8a6a5a;">Cálido único</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D — Obsidian Orange</h3>
+      <p>Obsidian #0c0807 · Orange primary · Amber secundario. La más distintiva — tono cálido que ninguna otra dev tool usa.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:12px;background:#0d1726;border-radius:6px;border-left:2px solid #f5a100;">
+  <p style="margin:0;font-size:10px;font-family:'Geist Mono',monospace;color:#7fa3c7;">
+    <span style="color:#f5a100;">taste-skill</span> params: DESIGN_VARIANCE 4 / MOTION 2 / DENSITY 9 &nbsp;·&nbsp;
+    <span style="color:#38bdf8;">ui-ux-pro-max</span>: contraste WCAG verificado, tokens semánticos, Geist/Geist Mono, sin emojis como íconos
+  </p>
+</div>

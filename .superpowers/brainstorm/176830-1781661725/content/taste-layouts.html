@@ -1,0 +1,135 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap');
+  .mockup-wrap { background: #06090f; border-radius: 8px; overflow: hidden; font-family: 'Geist', sans-serif; }
+  .mock-sidebar { background: #06090f; border-right: 1px solid #1a2235; width: 140px; flex-shrink: 0; padding: 14px 0; }
+  .mock-sidebar-item { padding: 6px 14px; font-size: 10px; color: #3d5a7a; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Geist Mono', monospace; }
+  .mock-sidebar-item.active { color: #f5a100; background: rgba(245,161,0,0.08); border-left: 2px solid #f5a100; }
+  .mock-logo { padding: 14px; font-size: 11px; font-weight: 700; color: #f5a100; font-family: 'Geist Mono', monospace; letter-spacing: 2px; border-bottom: 1px solid #1a2235; margin-bottom: 6px; }
+  .mock-status-dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; flex-shrink: 0; }
+  .mock-status-dot.off { background: #3d5a7a; }
+  .mock-agent-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 3px; background: #0d1726; margin-bottom: 3px; font-family: 'Geist Mono', monospace; }
+  .mock-agent-name { font-size: 9px; color: #7fa3c7; }
+  .mock-agent-model { font-size: 9px; color: #38bdf8; }
+  .mock-pill { font-size: 8px; padding: 2px 6px; border-radius: 10px; font-family: 'Geist Mono', monospace; }
+  .mock-section-title { font-size: 9px; font-weight: 700; color: #ddeeff; letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase; font-family: 'Geist Mono', monospace; }
+  .mock-tab { padding: 6px 10px; font-size: 9px; color: #3d5a7a; border-bottom: 2px solid transparent; cursor: pointer; font-family: 'Geist Mono', monospace; white-space: nowrap; }
+  .mock-tab.active { color: #f5a100; border-bottom-color: #f5a100; }
+  .mock-card { background: #0d1726; border-radius: 4px; border: 1px solid #1a2235; padding: 10px; }
+  .mock-card-title { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Geist Mono', monospace; }
+</style>
+
+<h2>Layout con taste-skill</h2>
+<p class="subtitle">Cada opción usa el mismo sistema visual: dark #06090f, Geist Mono para valores técnicos, amber como único acento</p>
+
+<div class="cards">
+
+  <!-- A: Sidebar -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; height: 220px; overflow: hidden;">
+      <div class="mockup-wrap" style="height: 220px; display: flex;">
+        <div class="mock-sidebar">
+          <div class="mock-logo">TF</div>
+          <div class="mock-sidebar-item active"><span style="color:#f5a100">⚡</span> fleet</div>
+          <div class="mock-sidebar-item"><span>🔑</span> api_keys</div>
+          <div class="mock-sidebar-item"><div class="mock-status-dot"></div> status</div>
+          <div class="mock-sidebar-item"><span style="color:#3d5a7a">▶</span> litellm</div>
+          <div class="mock-sidebar-item"><span>📁</span> projects</div>
+          <div style="margin-top: auto; padding: 10px 14px; border-top: 1px solid #1a2235; margin-top: 20px;">
+            <div style="font-size: 8px; color: #3d5a7a; font-family: 'Geist Mono', monospace;">v0.2.0</div>
+          </div>
+        </div>
+        <div style="flex: 1; padding: 14px; overflow: hidden;">
+          <div class="mock-section-title">fleet</div>
+          <div class="mock-agent-row"><span class="mock-agent-name">● scout</span><span class="mock-agent-model">gemini-flash</span></div>
+          <div class="mock-agent-row"><span class="mock-agent-name">● runner</span><span class="mock-agent-model">groq-llama</span></div>
+          <div class="mock-agent-row"><span class="mock-agent-name">● thinker</span><span class="mock-agent-model">deepseek-v4-flash</span></div>
+          <div class="mock-agent-row"><span class="mock-agent-name">● builder</span><span class="mock-agent-model">qwen-coder</span></div>
+          <div class="mock-agent-row"><span class="mock-agent-name">● reviewer</span><span class="mock-agent-model">claude-sonnet</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Sidebar persistente</h3>
+      <p>Navegación siempre visible. Ideal cuando saltás seguido entre secciones. Clásico de herramientas de desarrollo.</p>
+    </div>
+  </div>
+
+  <!-- B: Tabs -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; height: 220px; overflow: hidden;">
+      <div class="mockup-wrap" style="height: 220px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: flex-end; padding: 0 14px; gap: 2px; border-bottom: 1px solid #1a2235; background: #06090f;">
+          <div style="padding: 10px 6px 0; font-size: 10px; font-weight: 700; color: #f5a100; font-family: 'Geist Mono', monospace; letter-spacing: 2px;">TRUFAGENT</div>
+          <div style="flex: 1"></div>
+          <div class="mock-tab active">fleet</div>
+          <div class="mock-tab">api_keys</div>
+          <div class="mock-tab">status</div>
+          <div class="mock-tab">litellm</div>
+          <div class="mock-tab">projects</div>
+        </div>
+        <div style="flex: 1; padding: 12px; overflow: hidden;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● scout</span><span class="mock-agent-model">gemini-flash</span></div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● runner</span><span class="mock-agent-model">groq-llama</span></div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● thinker</span><span class="mock-agent-model">deepseek-v4</span></div>
+            </div>
+            <div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● builder</span><span class="mock-agent-model">qwen-coder</span></div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● reviewer</span><span class="mock-agent-model">claude-sonnet</span></div>
+              <div class="mock-agent-row"><span class="mock-agent-name">● critic</span><span class="mock-agent-model">claude-sonnet</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Tabs top</h3>
+      <p>Compacto, maximiza el espacio de contenido. Ideal si la pantalla es chica. Cada sección en su propio tab.</p>
+    </div>
+  </div>
+
+  <!-- C: Dashboard cards -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; height: 220px; overflow: hidden;">
+      <div class="mockup-wrap" style="height: 220px; padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="font-size: 10px; font-weight: 700; color: #f5a100; font-family: 'Geist Mono', monospace; letter-spacing: 2px;">TRUFAGENT</div>
+          <div style="display: flex; align-items: center; gap: 4px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 2px 7px;">
+            <div class="mock-status-dot"></div>
+            <span style="font-size: 8px; color: #34d399; font-family: 'Geist Mono', monospace;">litellm :4000</span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <div class="mock-card">
+            <div class="mock-card-title" style="color: #f5a100;">⚡ fleet</div>
+            <div style="font-size: 9px; color: #7fa3c7; font-family: 'Geist Mono', monospace;">7 agents / recommended</div>
+            <div style="font-size: 9px; color: #34d399; font-family: 'Geist Mono', monospace; margin-top: 2px;">all reachable ✓</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title" style="color: #38bdf8;">🔑 api_keys</div>
+            <div style="font-size: 9px; color: #34d399; font-family: 'Geist Mono', monospace;">anthropic ✓</div>
+            <div style="font-size: 9px; color: #f59e0b; font-family: 'Geist Mono', monospace;">groq missing</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title" style="color: #c084fc;">📁 projects</div>
+            <div style="font-size: 9px; color: #7fa3c7; font-family: 'Geist Mono', monospace;">JC-APP initialized</div>
+            <div style="font-size: 9px; color: #f5a100; font-family: 'Geist Mono', monospace; cursor: pointer;">+ init project</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title" style="color: #f87171;">▶ litellm</div>
+            <div style="font-size: 9px; color: #34d399; font-family: 'Geist Mono', monospace;">running on :4000</div>
+            <div style="font-size: 9px; color: #f87171; font-family: 'Geist Mono', monospace; cursor: pointer;">■ stop</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Dashboard overview</h3>
+      <p>Vista de estado de un vistazo. Cards resumen que al hacer click expanden o navegan al detalle. El más rápido de leer.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top: 16px; text-align: center;">Fuente: Geist / Geist Mono · Acento único: amber #f5a100 · DESIGN_VARIANCE 4 / MOTION 2 / DENSITY 9</p>

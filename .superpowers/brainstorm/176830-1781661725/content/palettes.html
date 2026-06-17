@@ -1,0 +1,187 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap');
+  .palette-card { border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.15s; }
+  .palette-card:hover { transform: translateY(-2px); }
+  .palette-preview { height: 160px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .palette-swatches { display: flex; gap: 4px; margin-bottom: 4px; }
+  .swatch { height: 16px; border-radius: 3px; flex: 1; }
+  .agent-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 3px; font-family: 'Geist Mono', monospace; }
+  .palette-meta { padding: 12px; }
+  .palette-name { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .palette-desc { font-size: 11px; opacity: 0.7; }
+</style>
+
+<h2>Color Palettes</h2>
+<p class="subtitle">Cuatro sistemas de color aplicados al mismo componente — siguiendo las reglas de taste-skill (sin pure black, sin defaults de IA)</p>
+
+<div class="cards">
+
+  <!-- A: Amber Dark (current) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="palette-preview" style="background:#06090f;">
+        <div class="palette-swatches">
+          <div class="swatch" style="background:#06090f; border:1px solid #1a2235"></div>
+          <div class="swatch" style="background:#0d1726"></div>
+          <div class="swatch" style="background:#f5a100"></div>
+          <div class="swatch" style="background:#38bdf8"></div>
+          <div class="swatch" style="background:#34d399"></div>
+          <div class="swatch" style="background:#ddeeff"></div>
+        </div>
+        <div class="agent-row" style="background:#0d1726;">
+          <span style="font-size:9px;color:#7fa3c7;">● scout</span>
+          <span style="font-size:9px;color:#38bdf8;">gemini-flash</span>
+        </div>
+        <div class="agent-row" style="background:#0d1726;">
+          <span style="font-size:9px;color:#7fa3c7;">● thinker</span>
+          <span style="font-size:9px;color:#38bdf8;">deepseek-v4</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px;">
+          <div style="flex:1;background:#0d1726;border-radius:3px;padding:5px 8px;border-left:2px solid #f5a100;">
+            <div style="font-size:8px;color:#f5a100;font-family:'Geist Mono',monospace;">litellm</div>
+            <div style="font-size:9px;color:#34d399;font-family:'Geist Mono',monospace;">running :4000</div>
+          </div>
+          <div style="flex:1;background:#0d1726;border-radius:3px;padding:5px 8px;border-left:2px solid #f87171;">
+            <div style="font-size:8px;color:#f87171;font-family:'Geist Mono',monospace;">groq_api</div>
+            <div style="font-size:9px;color:#f87171;font-family:'Geist Mono',monospace;">missing</div>
+          </div>
+        </div>
+      </div>
+      <div class="palette-meta" style="background:#0d1726;border-top:1px solid #1a2235;">
+        <div class="palette-name" style="color:#f5a100;">Amber Dark</div>
+        <div class="palette-desc" style="color:#7fa3c7;">Base #06090f · Acento amber · Sky blue secundario</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Amber Dark</h3>
+      <p>La paleta actual de trufagent. Dark navy profundo, amber para acciones y alertas activas, sky blue para valores técnicos.</p>
+    </div>
+  </div>
+
+  <!-- B: Slate Cyan -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="palette-preview" style="background:#070d14;">
+        <div class="palette-swatches">
+          <div class="swatch" style="background:#070d14; border:1px solid #0f2030"></div>
+          <div class="swatch" style="background:#0f2030"></div>
+          <div class="swatch" style="background:#22d3ee"></div>
+          <div class="swatch" style="background:#818cf8"></div>
+          <div class="swatch" style="background:#34d399"></div>
+          <div class="swatch" style="background:#e0f2fe"></div>
+        </div>
+        <div class="agent-row" style="background:#0f2030;">
+          <span style="font-size:9px;color:#7fb3c8;">● scout</span>
+          <span style="font-size:9px;color:#22d3ee;">gemini-flash</span>
+        </div>
+        <div class="agent-row" style="background:#0f2030;">
+          <span style="font-size:9px;color:#7fb3c8;">● thinker</span>
+          <span style="font-size:9px;color:#22d3ee;">deepseek-v4</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px;">
+          <div style="flex:1;background:#0f2030;border-radius:3px;padding:5px 8px;border-left:2px solid #22d3ee;">
+            <div style="font-size:8px;color:#22d3ee;font-family:'Geist Mono',monospace;">litellm</div>
+            <div style="font-size:9px;color:#34d399;font-family:'Geist Mono',monospace;">running :4000</div>
+          </div>
+          <div style="flex:1;background:#0f2030;border-radius:3px;padding:5px 8px;border-left:2px solid #f87171;">
+            <div style="font-size:8px;color:#f87171;font-family:'Geist Mono',monospace;">groq_api</div>
+            <div style="font-size:9px;color:#f87171;font-family:'Geist Mono',monospace;">missing</div>
+          </div>
+        </div>
+      </div>
+      <div class="palette-meta" style="background:#0f2030;border-top:1px solid #1a3040;">
+        <div class="palette-name" style="color:#22d3ee;">Slate Cyan</div>
+        <div class="palette-desc" style="color:#7fb3c8;">Base #070d14 · Acento cyan · Indigo secundario</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Slate Cyan</h3>
+      <p>Más "hacker terminal". Dark slate azulado, cyan eléctrico como acento. Evoca herramientas de red y monitoreo.</p>
+    </div>
+  </div>
+
+  <!-- C: Zinc Lime -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="palette-preview" style="background:#09090b;">
+        <div class="palette-swatches">
+          <div class="swatch" style="background:#09090b; border:1px solid #1c1c24"></div>
+          <div class="swatch" style="background:#141418"></div>
+          <div class="swatch" style="background:#a3e635"></div>
+          <div class="swatch" style="background:#fb923c"></div>
+          <div class="swatch" style="background:#34d399"></div>
+          <div class="swatch" style="background:#fafafa"></div>
+        </div>
+        <div class="agent-row" style="background:#141418;">
+          <span style="font-size:9px;color:#71717a;">● scout</span>
+          <span style="font-size:9px;color:#a3e635;">gemini-flash</span>
+        </div>
+        <div class="agent-row" style="background:#141418;">
+          <span style="font-size:9px;color:#71717a;">● thinker</span>
+          <span style="font-size:9px;color:#a3e635;">deepseek-v4</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px;">
+          <div style="flex:1;background:#141418;border-radius:3px;padding:5px 8px;border-left:2px solid #a3e635;">
+            <div style="font-size:8px;color:#a3e635;font-family:'Geist Mono',monospace;">litellm</div>
+            <div style="font-size:9px;color:#34d399;font-family:'Geist Mono',monospace;">running :4000</div>
+          </div>
+          <div style="flex:1;background:#141418;border-radius:3px;padding:5px 8px;border-left:2px solid #f87171;">
+            <div style="font-size:8px;color:#f87171;font-family:'Geist Mono',monospace;">groq_api</div>
+            <div style="font-size:9px;color:#f87171;font-family:'Geist Mono',monospace;">missing</div>
+          </div>
+        </div>
+      </div>
+      <div class="palette-meta" style="background:#141418;border-top:1px solid #1c1c24;">
+        <div class="palette-name" style="color:#a3e635;">Zinc Lime</div>
+        <div class="palette-desc" style="color:#71717a;">Base #09090b · Acento lime · Orange secundario</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Zinc Lime</h3>
+      <p>Neutral zinc oscuro, lime/acid como acento. Estilo dev tool moderno. Muy alto contraste, fácil de leer.</p>
+    </div>
+  </div>
+
+  <!-- D: Obsidian Orange -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="palette-preview" style="background:#0c0807;">
+        <div class="palette-swatches">
+          <div class="swatch" style="background:#0c0807; border:1px solid #1f1510"></div>
+          <div class="swatch" style="background:#1a100a"></div>
+          <div class="swatch" style="background:#f97316"></div>
+          <div class="swatch" style="background:#fbbf24"></div>
+          <div class="swatch" style="background:#34d399"></div>
+          <div class="swatch" style="background:#fff1e6"></div>
+        </div>
+        <div class="agent-row" style="background:#1a100a;">
+          <span style="font-size:9px;color:#8a6a5a;">● scout</span>
+          <span style="font-size:9px;color:#f97316;">gemini-flash</span>
+        </div>
+        <div class="agent-row" style="background:#1a100a;">
+          <span style="font-size:9px;color:#8a6a5a;">● thinker</span>
+          <span style="font-size:9px;color:#f97316;">deepseek-v4</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px;">
+          <div style="flex:1;background:#1a100a;border-radius:3px;padding:5px 8px;border-left:2px solid #f97316;">
+            <div style="font-size:8px;color:#f97316;font-family:'Geist Mono',monospace;">litellm</div>
+            <div style="font-size:9px;color:#34d399;font-family:'Geist Mono',monospace;">running :4000</div>
+          </div>
+          <div style="flex:1;background:#1a100a;border-radius:3px;padding:5px 8px;border-left:2px solid #f87171;">
+            <div style="font-size:8px;color:#f87171;font-family:'Geist Mono',monospace;">groq_api</div>
+            <div style="font-size:9px;color:#f87171;font-family:'Geist Mono',monospace;">missing</div>
+          </div>
+        </div>
+      </div>
+      <div class="palette-meta" style="background:#1a100a;border-top:1px solid #2a180e;">
+        <div class="palette-name" style="color:#f97316;">Obsidian Orange</div>
+        <div class="palette-desc" style="color:#8a6a5a;">Base #0c0807 · Acento orange · Amber secundario</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D — Obsidian Orange</h3>
+      <p>Obsidian casi-negro con tono cálido, orange como acento. Distintivo, energético. Se diferencia de cualquier otra dev tool.</p>
+    </div>
+  </div>
+
+</div>

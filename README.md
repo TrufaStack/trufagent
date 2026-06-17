@@ -60,10 +60,27 @@ Then run setup:
 
 | Command | What it does |
 |---------|-------------|
-| `/trufagent:setup` | One-time global setup — choose fleet mode, configure API keys, install hooks |
+| `/trufagent:dashboard` | **Open local config UI** — browser-based fleet config, API keys, LiteLLM control |
+| `/trufagent:setup` | One-time global setup via CLI — choose fleet mode, configure API keys, install hooks |
 | `/trufagent:init` | Per-project init — auto-detects stack, generates CLAUDE.md + context files |
-| `/trufagent:config [agent]` | Swap the model behind an agent role |
-| `/trufagent:status` | Show fleet status and LiteLLM health |
+| `/trufagent:config [agent]` | Swap the model behind an agent role (CLI) |
+| `/trufagent:status` | Show fleet status and LiteLLM health (CLI) |
+
+## Dashboard UI
+
+Type `/trufagent:dashboard` in Claude Code to open the local configuration UI at `http://localhost:7433`.
+
+```
+fleet    → Configure agents: model string (any LiteLLM provider), API key per agent,
+           connection test + validation before save. Auto-generates litellm-config.yaml.
+status   → Real-time health: LiteLLM proxy status + latency ping for each agent.
+litellm  → Start/stop the LiteLLM proxy, view required env vars, copy start command.
+projects → List initialized projects, initialize new ones with context/ structure.
+```
+
+**Tech:** FastAPI + vanilla HTML/CSS/JS. Binds to 127.0.0.1 only. Requires Python (already needed for LiteLLM).
+
+**Install UI deps:** `pip install fastapi uvicorn pyyaml httpx python-dotenv`
 
 ---
 

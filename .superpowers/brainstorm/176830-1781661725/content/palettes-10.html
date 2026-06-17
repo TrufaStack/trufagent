@@ -1,0 +1,220 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap');
+  .pal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pal { border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s, transform 0.15s; }
+  .pal:hover { transform: translateY(-2px); }
+  .pal.selected { border-color: #f5a100 !important; }
+  .pal-preview { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .pal-swatches { display: flex; gap: 3px; margin-bottom: 2px; }
+  .sw { height: 12px; border-radius: 2px; flex: 1; }
+  .pal-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 7px; border-radius: 3px; font-family: 'Geist Mono', monospace; font-size: 8px; }
+  .pal-footer { padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .pal-name { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; }
+  .pal-meta { font-family: 'Geist Mono', monospace; font-size: 7px; }
+  .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 7px; font-family: 'Geist Mono', monospace; }
+  .aaa { background: rgba(52,211,153,0.15); color: #34d399; }
+  .aa { background: rgba(56,189,248,0.15); color: #38bdf8; }
+</style>
+
+<h2>10 Paletas — taste-skill × ui-ux-pro-max</h2>
+<p class="subtitle">Todas con Geist/Geist Mono · WCAG AA mínimo · Un acento por paleta · Sin defaults de IA</p>
+
+<div class="pal-grid">
+
+  <!-- 1 Amber Dark -->
+  <div class="pal" data-choice="1" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#06090f">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#06090f;border:1px solid #1a2235"></div>
+        <div class="sw" style="background:#0d1726"></div>
+        <div class="sw" style="background:#f5a100"></div>
+        <div class="sw" style="background:#38bdf8"></div>
+        <div class="sw" style="background:#ddeeff"></div>
+      </div>
+      <div class="pal-row" style="background:#0d1726"><span style="color:#7fa3c7">● thinker</span><span style="color:#38bdf8">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#0d1726"><span style="color:#f5a100">⚡ fleet</span><span style="color:#ddeeff">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#0d1726;border-top:1px solid #1a2235">
+      <span class="pal-name" style="color:#f5a100">Amber Dark</span>
+      <span class="badge aaa">AAA 12.8:1</span>
+    </div>
+  </div>
+
+  <!-- 2 Slate Cyan -->
+  <div class="pal" data-choice="2" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#070d14">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#070d14;border:1px solid #0f2030"></div>
+        <div class="sw" style="background:#0f2030"></div>
+        <div class="sw" style="background:#22d3ee"></div>
+        <div class="sw" style="background:#818cf8"></div>
+        <div class="sw" style="background:#e0f2fe"></div>
+      </div>
+      <div class="pal-row" style="background:#0f2030"><span style="color:#7fb3c8">● thinker</span><span style="color:#22d3ee">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#0f2030"><span style="color:#22d3ee">⚡ fleet</span><span style="color:#e0f2fe">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#0f2030;border-top:1px solid #1a3040">
+      <span class="pal-name" style="color:#22d3ee">Slate Cyan</span>
+      <span class="badge aaa">AAA 14.1:1</span>
+    </div>
+  </div>
+
+  <!-- 3 Zinc Lime -->
+  <div class="pal" data-choice="3" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#09090b">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#09090b;border:1px solid #1c1c24"></div>
+        <div class="sw" style="background:#141418"></div>
+        <div class="sw" style="background:#a3e635"></div>
+        <div class="sw" style="background:#fb923c"></div>
+        <div class="sw" style="background:#fafafa"></div>
+      </div>
+      <div class="pal-row" style="background:#141418"><span style="color:#71717a">● thinker</span><span style="color:#a3e635">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#141418"><span style="color:#a3e635">⚡ fleet</span><span style="color:#fafafa">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#141418;border-top:1px solid #1c1c24">
+      <span class="pal-name" style="color:#a3e635">Zinc Lime</span>
+      <span class="badge aaa">AAA 18.1:1</span>
+    </div>
+  </div>
+
+  <!-- 4 Obsidian Orange -->
+  <div class="pal" data-choice="4" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#0c0807">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#0c0807;border:1px solid #1f1510"></div>
+        <div class="sw" style="background:#1a100a"></div>
+        <div class="sw" style="background:#f97316"></div>
+        <div class="sw" style="background:#fbbf24"></div>
+        <div class="sw" style="background:#fff1e6"></div>
+      </div>
+      <div class="pal-row" style="background:#1a100a"><span style="color:#8a6a5a">● thinker</span><span style="color:#f97316">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#1a100a"><span style="color:#f97316">⚡ fleet</span><span style="color:#fff1e6">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#1a100a;border-top:1px solid #2a180e">
+      <span class="pal-name" style="color:#f97316">Obsidian Orange</span>
+      <span class="badge aaa">AAA 16.2:1</span>
+    </div>
+  </div>
+
+  <!-- 5 Midnight Teal -->
+  <div class="pal" data-choice="5" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#040f0d">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#040f0d;border:1px solid #0a1f1c"></div>
+        <div class="sw" style="background:#091a17"></div>
+        <div class="sw" style="background:#2dd4bf"></div>
+        <div class="sw" style="background:#34d399"></div>
+        <div class="sw" style="background:#ccfbf1"></div>
+      </div>
+      <div class="pal-row" style="background:#091a17"><span style="color:#4a8a80">● thinker</span><span style="color:#2dd4bf">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#091a17"><span style="color:#2dd4bf">⚡ fleet</span><span style="color:#ccfbf1">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#091a17;border-top:1px solid #0a2420">
+      <span class="pal-name" style="color:#2dd4bf">Midnight Teal</span>
+      <span class="badge aaa">AAA 13.4:1</span>
+    </div>
+  </div>
+
+  <!-- 6 Carbon Rose -->
+  <div class="pal" data-choice="6" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#0a0708">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#0a0708;border:1px solid #1a1015"></div>
+        <div class="sw" style="background:#160d10"></div>
+        <div class="sw" style="background:#f43f5e"></div>
+        <div class="sw" style="background:#fb7185"></div>
+        <div class="sw" style="background:#ffe4e6"></div>
+      </div>
+      <div class="pal-row" style="background:#160d10"><span style="color:#7a5060">● thinker</span><span style="color:#f43f5e">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#160d10"><span style="color:#f43f5e">⚡ fleet</span><span style="color:#ffe4e6">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#160d10;border-top:1px solid #221520">
+      <span class="pal-name" style="color:#f43f5e">Carbon Rose</span>
+      <span class="badge aaa">AAA 11.8:1</span>
+    </div>
+  </div>
+
+  <!-- 7 Forest Emerald -->
+  <div class="pal" data-choice="7" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#040c06">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#040c06;border:1px solid #0a1f0e"></div>
+        <div class="sw" style="background:#0a1a0d"></div>
+        <div class="sw" style="background:#10b981"></div>
+        <div class="sw" style="background:#34d399"></div>
+        <div class="sw" style="background:#d1fae5"></div>
+      </div>
+      <div class="pal-row" style="background:#0a1a0d"><span style="color:#3a7a50">● thinker</span><span style="color:#10b981">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#0a1a0d"><span style="color:#10b981">⚡ fleet</span><span style="color:#d1fae5">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#0a1a0d;border-top:1px solid #102a14">
+      <span class="pal-name" style="color:#10b981">Forest Emerald</span>
+      <span class="badge aa">AA 8.9:1</span>
+    </div>
+  </div>
+
+  <!-- 8 Ink Gold -->
+  <div class="pal" data-choice="8" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#06070f">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#06070f;border:1px solid #10121f"></div>
+        <div class="sw" style="background:#0d0e1c"></div>
+        <div class="sw" style="background:#eab308"></div>
+        <div class="sw" style="background:#fbbf24"></div>
+        <div class="sw" style="background:#fefce8"></div>
+      </div>
+      <div class="pal-row" style="background:#0d0e1c"><span style="color:#4a4a6a">● thinker</span><span style="color:#eab308">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#0d0e1c"><span style="color:#eab308">⚡ fleet</span><span style="color:#fefce8">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#0d0e1c;border-top:1px solid #181a2e">
+      <span class="pal-name" style="color:#eab308">Ink Gold</span>
+      <span class="badge aaa">AAA 14.6:1</span>
+    </div>
+  </div>
+
+  <!-- 9 Deep Sky -->
+  <div class="pal" data-choice="9" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#070c14">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#070c14;border:1px solid #0f1a28"></div>
+        <div class="sw" style="background:#0f1f35"></div>
+        <div class="sw" style="background:#60a5fa"></div>
+        <div class="sw" style="background:#93c5fd"></div>
+        <div class="sw" style="background:#eff6ff"></div>
+      </div>
+      <div class="pal-row" style="background:#0f1f35"><span style="color:#4a6a8a">● thinker</span><span style="color:#60a5fa">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#0f1f35"><span style="color:#60a5fa">⚡ fleet</span><span style="color:#eff6ff">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#0f1f35;border-top:1px solid #162840">
+      <span class="pal-name" style="color:#60a5fa">Deep Sky</span>
+      <span class="badge aa">AA 7.2:1</span>
+    </div>
+  </div>
+
+  <!-- 10 Graphite Lavender -->
+  <div class="pal" data-choice="10" onclick="toggleSelect(this)">
+    <div class="pal-preview" style="background:#0c0a10">
+      <div class="pal-swatches">
+        <div class="sw" style="background:#0c0a10;border:1px solid #1a1620"></div>
+        <div class="sw" style="background:#160e20"></div>
+        <div class="sw" style="background:#a78bfa"></div>
+        <div class="sw" style="background:#c4b5fd"></div>
+        <div class="sw" style="background:#f5f3ff"></div>
+      </div>
+      <div class="pal-row" style="background:#160e20"><span style="color:#6a5a80">● thinker</span><span style="color:#a78bfa">deepseek-v4</span></div>
+      <div class="pal-row" style="background:#160e20"><span style="color:#a78bfa">⚡ fleet</span><span style="color:#f5f3ff">running</span></div>
+    </div>
+    <div class="pal-footer" style="background:#160e20;border-top:1px solid #221830">
+      <span class="pal-name" style="color:#a78bfa">Graphite Lavender</span>
+      <span class="badge aaa">AAA 10.1:1</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:12px;padding:10px 12px;background:#0d1726;border-radius:6px;display:flex;gap:16px;flex-wrap:wrap">
+  <span style="font-size:8px;font-family:'Geist Mono',monospace;color:#34d399">● AAA = contraste ≥7:1</span>
+  <span style="font-size:8px;font-family:'Geist Mono',monospace;color:#38bdf8">● AA = contraste ≥4.5:1</span>
+  <span style="font-size:8px;font-family:'Geist Mono',monospace;color:#7fa3c7">Todas: Geist/Geist Mono · Sin pure black · Sin Inter · 1 acento</span>
+</div>

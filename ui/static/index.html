@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>trufagent</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-main">TF</div>
+      <div class="sidebar-logo-sub">trufagent</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-section="fleet">
+        <i class="fa-solid fa-robot"></i>fleet
+      </div>
+      <div class="nav-item" data-section="status">
+        <i class="fa-solid fa-circle-dot"></i>status
+      </div>
+      <div class="nav-item" data-section="litellm">
+        <i class="fa-solid fa-server"></i>litellm
+      </div>
+      <div class="nav-item" data-section="projects">
+        <i class="fa-solid fa-folder-open"></i>projects
+      </div>
+    </nav>
+    <div class="sidebar-version">v0.2.0</div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ════ FLEET ════ -->
+    <div id="section-fleet" class="section active">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fa-solid fa-robot"></i>fleet configuration
+        </div>
+        <span class="section-badge" id="fleet-badge">— agents</span>
+      </div>
+      <div class="agent-tabs-bar" id="agent-tabs"></div>
+      <div id="agent-details"></div>
+
+      <!-- Config accordion (at bottom of fleet) -->
+      <div class="section-body" style="padding-top:0;flex:none">
+        <div class="config-accordion">
+          <div class="config-toggle" id="config-toggle">
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>View generated config</span>
+          </div>
+          <div class="config-body" id="config-body">
+            <textarea class="config-textarea" id="config-textarea" readonly></textarea>
+            <div class="copy-row">
+              <button class="btn btn-ghost" onclick="copyConfig()">
+                <i class="fa-solid fa-copy"></i>Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ STATUS ════ -->
+    <div id="section-status" class="section">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fa-solid fa-circle-dot"></i>status
+        </div>
+        <button class="btn btn-ghost" style="font-size:10px" onclick="loadStatus()">
+          <i class="fa-solid fa-arrows-rotate"></i>Refresh
+        </button>
+      </div>
+      <div class="section-body" id="status-body">
+        <div style="color:var(--ink-dim);font-family:var(--font-mono);font-size:11px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ════ LITELLM ════ -->
+    <div id="section-litellm" class="section">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fa-solid fa-server"></i>litellm proxy
+        </div>
+      </div>
+      <div class="section-body" id="litellm-body">
+        <div style="color:var(--ink-dim);font-family:var(--font-mono);font-size:11px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ════ PROJECTS ════ -->
+    <div id="section-projects" class="section">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fa-solid fa-folder-open"></i>projects
+        </div>
+      </div>
+      <div class="section-body" id="projects-body">
+        <div style="color:var(--ink-dim);font-family:var(--font-mono);font-size:11px">Loading...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
