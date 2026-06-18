@@ -156,6 +156,28 @@ class ProjectInit(BaseModel):
 class LiteLLMStart(BaseModel):
     config_path: Optional[str] = None
 
+# ── Launch endpoints ──────────────────────────────────────────────────────────
+
+@app.post("/api/launch/claude")
+async def launch_claude():
+    claude_cmd = 'claude; exec $SHELL'
+    terminals = [
+        ['gnome-terminal', '--', 'bash', '--login', '-c', claude_cmd],
+        ['konsole', '--noclose', '-e', 'bash', '--login', '-c', claude_cmd],
+        ['xfce4-terminal', '--hold', '-e', f'bash --login -c "{claude_cmd}"'],
+        ['tilix', '-e', f'bash --login -c "{claude_cmd}"'],
+        ['alacritty', '-e', 'bash', '--login', '-c', claude_cmd],
+        ['kitty', 'bash', '--login', '-c', claude_cmd],
+        ['xterm', '-e', f'bash --login -c "{claude_cmd}"'],
+    ]
+    for cmd in terminals:
+        try:
+            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return {"ok": True, "terminal": cmd[0]}
+        except FileNotFoundError:
+            continue
+    return {"ok": False, "message": "No supported terminal found. Run: claude"}
+
 # ── Fleet endpoints ───────────────────────────────────────────────────────────
 
 @app.get("/api/fleet")

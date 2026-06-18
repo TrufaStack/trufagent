@@ -154,6 +154,57 @@ body {
 .section { display: none; flex-direction: column; height: 100%; }
 .section.active { display: flex; }
 
+/* ── Preset strip ───────────────────────────────────────────── */
+.preset-strip {
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.preset-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-right: 4px;
+}
+.preset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink-dim);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.preset-btn:hover { border-color: var(--muted); color: var(--ink); }
+.preset-btn.recommended:hover { border-color: var(--accent); color: var(--accent); background: rgba(52,211,153,.06); }
+.preset-btn.fullstack { border-color: rgba(45,212,191,.25); color: var(--primary); background: rgba(45,212,191,.06); }
+.preset-btn.fullstack:hover { background: rgba(45,212,191,.14); border-color: var(--primary); }
+.preset-btn.loading { opacity: 0.6; cursor: not-allowed; }
+.preset-sep { flex: 1; }
+.preset-feedback {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-dim);
+  display: none;
+}
+.preset-feedback.visible { display: block; }
+.preset-feedback.ok { color: var(--accent); }
+.preset-feedback.err { color: var(--danger); }
+
 /* ── Agent tabs ─────────────────────────────────────────────── */
 .agent-tabs-bar {
   padding: 14px 22px 0;

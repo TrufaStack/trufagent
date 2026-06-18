@@ -600,6 +600,57 @@ function connectSSE() {
   es.onerror = () => { setTimeout(connectSSE, 5000); };
 }
 
+// ── Presets ──────────────────────────────────────────────────────────────────
+const PRESET_RECOMMENDED = [
+  { name: 'scout',   model: 'gemini/gemini-2.0-flash',                          keyName: 'GEMINI_API_KEY' },
+  { name: 'runner',  model: 'groq/llama-3.3-70b-versatile',                     keyName: 'GROQ_API_KEY' },
+  { name: 'thinker', model: 'deepseek/deepseek-v4-flash',                       keyName: 'DEEPSEEK_API_KEY' },
+  { name: 'builder', model: 'openrouter/qwen/qwen-2.5-coder-32b-instruct',      keyName: 'OPENROUTER_API_KEY' },
+  { name: 'writer',  model: 'openrouter/mistralai/mistral-7b-instruct:free',    keyName: 'OPENROUTER_API_KEY' },
+];
+
+function showPresetFeedback(msg, type = 'ok') {
+  const el = document.getElementById('preset-feedback');
+  el.textContent = msg;
+  el.className = `preset-feedback visible ${type}`;
+  setTimeout(() => el.classList.remove('visible'), 3500);
+}
+
+async function applyPreset(mode) {
+  if (mode === 'fullstack') {
+    const btn = document.querySelector('.preset-btn.fullstack');
+    btn.classList.add('loading');
+    btn.innerHTML = '<div class="spinner"></div>Opening…';
+    const res = await fetch('/api/launch/claude', { method: 'POST' });
+    const data = await res.json();
+    btn.classList.remove('loading');
+    btn.innerHTML = '<i class="fa-solid fa-terminal" style="font-size:9px"></i>Full-stack Claude';
+    if (data.ok) {
+      showPresetFeedback(`Terminal opened (${data.terminal}) — agents run natively in Claude Code`, 'ok');
+    } else {
+      showPresetFeedback(data.message || 'Could not open terminal', 'err');
+    }
+    return;
+  }
+
+  if (mode === 'recommended') {
+    const btn = document.querySelector('.preset-btn.recommended');
+    btn.classList.add('loading');
+    btn.innerHTML = '<div class="spinner"></div>Applying…';
+    await Promise.all(PRESET_RECOMMENDED.map(({ name, model, keyName }) =>
+      fetch(`/api/fleet/${name}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, key_name: keyName }),
+      })
+    ));
+    btn.classList.remove('loading');
+    btn.innerHTML = '<i class="fa-solid fa-layer-group" style="font-size:9px"></i>Recommended';
+    showPresetFeedback('Recommended preset applied — enter API keys for each agent', 'ok');
+    loadFleet();
+  }
+}
+
 // ── Model picker ────────────────────────────────────────────────────────────
 let pickerTargetAgent = null;
 let pickerSelectedModel = null;

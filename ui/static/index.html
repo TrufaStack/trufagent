@@ -44,6 +44,17 @@
         </div>
         <span class="section-badge" id="fleet-badge">— agents</span>
       </div>
+      <div class="preset-strip">
+        <span class="preset-label">preset</span>
+        <button class="preset-btn recommended" onclick="applyPreset('recommended')">
+          <i class="fa-solid fa-layer-group" style="font-size:9px"></i>Recommended
+        </button>
+        <button class="preset-btn fullstack" onclick="applyPreset('fullstack')">
+          <i class="fa-solid fa-terminal" style="font-size:9px"></i>Full-stack Claude
+        </button>
+        <span class="preset-sep"></span>
+        <span class="preset-feedback" id="preset-feedback"></span>
+      </div>
       <div class="agent-tabs-bar" id="agent-tabs"></div>
       <div id="agent-details"></div>
 
