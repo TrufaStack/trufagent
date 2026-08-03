@@ -88,3 +88,39 @@ always-on skills:
 
 This preserves the useful procedural knowledge without returning to the
 premature specificity that v2 is intended to remove.
+
+## First import plan
+
+The governed import pilot is recorded in
+`~/.trufagent/skills/import-plan.json`:
+
+- direct `anthropics/skills:doc-coauthoring`: held as `needs-review`; the pinned
+  directory contains only `SKILL.md`, while the repository does not declare a
+  single SPDX license. Do not copy it until redistribution terms are explicit;
+- adapt `code-review-and-quality`: candidate, MIT;
+- adapt `documentation-and-adrs`: candidate, MIT, with a non-critical sensitive
+  configuration reference;
+- adapt `test-driven-development`: candidate, MIT;
+- adapt `incremental-implementation`: candidate, MIT, with a non-critical
+  sensitive configuration reference.
+
+No item was installed. The four MIT sources should be collapsed into two small
+Trufagent skills—implementation evidence and post-change review/memory—rather
+than copied as four always-on workflows.
+
+## Adaptations materialized
+
+The four MIT sources were subsequently adapted into two concise, versioned
+skills under `skills/adapted/`:
+
+- `implement-with-evidence` combines proportional behavior proof and small
+  verified increments;
+- `review-and-remember` combines task-sized review with governed memory and
+  post-confirmation Graphify updates.
+
+Both keep detailed source commits, fingerprints, license, retained principles,
+and removed constraints in a lazily loaded `references/provenance.md`. Their
+operational `SKILL.md` files deliberately omit fixed coverage targets, mandatory
+commit cadence, universal gates, provider-specific examples, and automatic
+memory mutation. They were validated, installed in the Codex catalog, reviewed
+by exact fingerprint, and routed automatically only for fixes and features.

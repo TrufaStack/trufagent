@@ -38,6 +38,7 @@ from trufagent.application.sessions import (
     StartSessionService,
 )
 from trufagent.application.skill_catalog import InMemorySkillCatalog
+from trufagent.application.skill_import import plan_skill_import
 from trufagent.application.skill_sanitization import (
     apply_skill_sanitization,
     plan_skill_sanitization,
@@ -56,6 +57,7 @@ from trufagent.domain.delegation import (
 from trufagent.domain.memory import MemoryReviewMetadata, memory_json_schema
 from trufagent.domain.skill_audit import SkillAuditReport
 from trufagent.domain.skill_sanitization import SkillSanitizationManifest
+from trufagent.domain.skill_sources import RemoteSkillRegistry
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
 from trufagent.domain.task_preview import TaskPreviewRecord
 from trufagent.infrastructure.attempt_fs import (
@@ -372,6 +374,30 @@ def _build_parser() -> argparse.ArgumentParser:
         "--archive-root",
         type=Path,
         default=Path.home() / ".trufagent" / "skills" / "archive" / "v1",
+    )
+    import_skills = skills_subcommands.add_parser(
+        "import", help="Plan governed direct imports and local adaptations"
+    )
+    import_skills.add_argument("--plan", action="store_true", required=True)
+    import_skills.add_argument("--direct", action="append", default=[])
+    import_skills.add_argument("--adapt", action="append", default=[])
+    import_skills.add_argument(
+        "--sources",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "sources.json",
+    )
+    import_skills.add_argument(
+        "--manifest",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "import-plan.json",
+    )
+    import_skills.add_argument(
+        "--vendor-root",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "vendor",
+    )
+    import_skills.add_argument(
+        "--adaptation-root", type=Path, default=Path("skills") / "adapted"
     )
     profile = skills_subcommands.add_parser(
         "profile", help="Plan or apply a curated harness skill surface"
@@ -1241,6 +1267,34 @@ def main(argv: list[str] | None = None) -> int:
                             }
                         )
                     )
+            elif args.skills_command == "import":
+                if not args.direct and not args.adapt:
+                    raise ValueError("at least one --direct or --adapt selector is required")
+                registry = RemoteSkillRegistry.model_validate_json(
+                    args.sources.read_text(encoding="utf-8")
+                )
+                manifest = plan_skill_import(
+                    registry,
+                    direct=args.direct,
+                    adapt=args.adapt,
+                    vendor_root=args.vendor_root,
+                    adaptation_root=args.adaptation_root,
+                )
+                save_json_document(
+                    args.manifest, manifest.model_dump_json(indent=2, by_alias=True)
+                )
+                print(
+                    json.dumps(
+                        {
+                            "status": "planned",
+                            "manifest": str(args.manifest),
+                            "items": len(manifest.items),
+                            "direct": sum(item.mode == "direct" for item in manifest.items),
+                            "adapt": sum(item.mode == "adapt" for item in manifest.items),
+                            "mutations": 0,
+                        }
+                    )
+                )
             else:
                 surface = plan_codex_skill_surface(repository.load(), args.skill_root)
                 if args.apply:

@@ -30,13 +30,17 @@ from trufagent.domain.task_v2 import (
             TaskSignalsV2(kind=TaskKindV2.FEATURE, uncertainty=Uncertainty.LOW),
             Complexity.MEDIUM,
             ModelTier.BALANCED,
-            [],
+            ["implement-with-evidence", "review-and-remember"],
         ),
         (
             TaskSignalsV2(kind=TaskKindV2.FIX, uncertainty=Uncertainty.HIGH),
             Complexity.HIGH,
             ModelTier.FRONTIER,
-            ["systematic-debugging"],
+            [
+                "systematic-debugging",
+                "implement-with-evidence",
+                "review-and-remember",
+            ],
         ),
         (
             TaskSignalsV2(
@@ -57,7 +61,7 @@ from trufagent.domain.task_v2 import (
             ),
             Complexity.MEDIUM,
             ModelTier.BALANCED,
-            [],
+            ["implement-with-evidence", "review-and-remember"],
         ),
         (
             TaskSignalsV2(
@@ -67,7 +71,7 @@ from trufagent.domain.task_v2 import (
             ),
             Complexity.HIGH,
             ModelTier.FRONTIER,
-            [],
+            ["implement-with-evidence", "review-and-remember"],
         ),
     ],
 )

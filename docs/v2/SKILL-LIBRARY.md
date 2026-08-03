@@ -100,6 +100,23 @@ sea revisado y aprobado. Una aplicación aprobada usa
 raíces personales al archivo recuperable y marca las variantes administradas
 por plugins como `quarantined`, sin alterar sus cachés.
 
+## Inclusiones externas
+
+Una fuente remota gobernada puede producir un plan de inclusión sin descargarla
+al catálogo activo:
+
+```bash
+trufagent skills import --plan \
+  --direct anthropics/skills:doc-coauthoring \
+  --adapt addyosmani/agent-skills:code-review-and-quality
+```
+
+El manifiesto fija repositorio, commit, licencia, ruta, fingerprint, señales,
+duplicados, destino y modalidad. `direct` propone conservar exactamente el
+artefacto externo bajo una raíz vendor; `adapt` lo trata como procedencia para
+una skill propia y concisa. Este comando informa `mutations: 0`; todavía no
+instala ni activa contenido.
+
 La selección automática solo utiliza entradas activas, disponibles y
 revisadas. `--include-unreviewed` sirve para descubrimiento humano, no concede
 confianza ni autorización de ejecución.

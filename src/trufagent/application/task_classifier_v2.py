@@ -127,6 +127,19 @@ def classify_task_v2(signals: TaskSignalsV2) -> TaskClassificationV2:
             )
         )
         reasons.append("cause-not-established")
+    if signals.kind in {TaskKindV2.FIX, TaskKindV2.FEATURE}:
+        skills.extend(
+            [
+                SkillRecommendation(
+                    name="implement-with-evidence",
+                    reason="behavior change requires proportionate implementation proof",
+                ),
+                SkillRecommendation(
+                    name="review-and-remember",
+                    reason="completed change requires review and durable-memory triage",
+                ),
+            ]
+        )
     if signals.open_decisions:
         skills.append(
             SkillRecommendation(

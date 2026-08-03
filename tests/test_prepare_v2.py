@@ -51,6 +51,8 @@ def _catalog() -> InMemorySkillCatalog:
             for name, reviewed in (
                 ("systematic-debugging", True),
                 ("brainstorming", True),
+                ("implement-with-evidence", True),
+                ("review-and-remember", True),
                 ("tdd", True),
                 ("unreviewed-helper", False),
             )
@@ -130,7 +132,15 @@ def test_v2_unknown_bug_selects_debugging_and_high_exploration(tmp_path: Path) -
     assert result.effort is not None
     assert result.effort.explore == PhaseEffort.HIGH
     assert [(skill.name, skill.reason) for skill in result.skills] == [
-        ("systematic-debugging", "fix cause is not yet demonstrated")
+        ("systematic-debugging", "fix cause is not yet demonstrated"),
+        (
+            "implement-with-evidence",
+            "behavior change requires proportionate implementation proof",
+        ),
+        (
+            "review-and-remember",
+            "completed change requires review and durable-memory triage",
+        ),
     ]
 
 
@@ -146,6 +156,10 @@ def test_v2_normal_feature_is_balanced(tmp_path: Path) -> None:
     assert result.model_tier == ModelTier.BALANCED
     assert result.effort is not None
     assert result.effort.implement == PhaseEffort.MEDIUM
+    assert [skill.name for skill in result.skills] == [
+        "implement-with-evidence",
+        "review-and-remember",
+    ]
 
 
 def test_v2_open_architecture_selects_brainstorming(tmp_path: Path) -> None:
@@ -171,10 +185,13 @@ def test_v2_user_can_force_a_reviewed_skill(tmp_path: Path) -> None:
         use_skills=["tdd"],
     )
 
-    assert [(skill.name, skill.reason) for skill in result.skills] == [
-        ("tdd", "selected by user override")
+    assert [skill.name for skill in result.skills] == [
+        "implement-with-evidence",
+        "review-and-remember",
+        "tdd",
     ]
-    assert result.skills[0].location == "/skills/tdd/SKILL.md"
+    assert result.skills[-1].reason == "selected by user override"
+    assert result.skills[-1].location == "/skills/tdd/SKILL.md"
 
 
 def test_v2_user_can_exclude_an_automatic_skill(tmp_path: Path) -> None:
@@ -185,7 +202,10 @@ def test_v2_user_can_exclude_an_automatic_skill(tmp_path: Path) -> None:
         without_skills=["systematic-debugging"],
     )
 
-    assert result.skills == []
+    assert [skill.name for skill in result.skills] == [
+        "implement-with-evidence",
+        "review-and-remember",
+    ]
 
 
 def test_v2_context_exposes_memory_references_without_bodies(tmp_path: Path) -> None:
@@ -234,7 +254,10 @@ def test_v2_surfaces_unavailable_or_unreviewed_skill_warnings(tmp_path: Path) ->
         use_skills=["unreviewed-helper", "missing-helper"],
     )
 
-    assert result.skills == []
+    assert [skill.name for skill in result.skills] == [
+        "implement-with-evidence",
+        "review-and-remember",
+    ]
     assert any("not reviewed" in warning for warning in result.warnings)
     assert any("not installed" in warning for warning in result.warnings)
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review and Remember"
+  short_description: "Review changes and preserve durable context"
+  default_prompt: "Use $review-and-remember to review this change and propose durable project memory."

@@ -143,6 +143,14 @@ def classify_task(signals: TaskSignals) -> TaskStrategy:
             reasons.append("localized-library-behavior")
         evidence.append("reproduction-and-root-cause")
 
+    if signals.kind in {
+        TaskKind.BUG,
+        TaskKind.FEATURE,
+        TaskKind.VISUAL_REDESIGN,
+        TaskKind.PLANNED_IMPLEMENTATION,
+    }:
+        skills.extend(["implement-with-evidence", "review-and-remember"])
+
     if signals.open_decisions:
         mode = TaskMode.MIXED
         exploration = _max_effort(exploration, EffortLevel.MEDIUM)

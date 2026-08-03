@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement with Evidence"
+  short_description: "Implement changes with proportional proof"
+  default_prompt: "Use $implement-with-evidence to make this change with task-appropriate evidence."

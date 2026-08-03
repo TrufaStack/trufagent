@@ -21,6 +21,8 @@ _CORE = {
     "systematic-debugging",
     "brainstorming",
     "safety-guard",
+    "implement-with-evidence",
+    "review-and-remember",
 }
 _LEGACY_CANDIDATES = {
     "configure-ecc",
