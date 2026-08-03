@@ -11,6 +11,7 @@ from trufagent.domain.prepare_v2 import (
     PrepareStatus,
     PrepareTaskSummary,
     PrepareV2Result,
+    SkillPhase,
 )
 
 
@@ -43,13 +44,12 @@ def project_prepare_v2(
     signals_v2 = compact_v1_signals(extraction.signals)
     classification = classify_task_v2(signals_v2)
     selected = {skill.name: skill for skill in plan.selected_skills}
-    recommended_locations = {
-        name: skill.location_for(harness) for name, skill in selected.items()
-    }
+    recommended_locations = {name: skill.location_for(harness) for name, skill in selected.items()}
     skills = [
         PrepareSkill(
             name=recommendation.name,
             reason=recommendation.reason,
+            phase=recommendation.phase,
             location=(
                 recommended_locations[recommendation.name].path
                 if recommendation.name in recommended_locations
@@ -71,6 +71,7 @@ def project_prepare_v2(
         PrepareSkill(
             name=skill.name,
             reason="selected by user override",
+            phase=SkillPhase.ANY,
             location=(location.path if (location := skill.location_for(harness)) else None),
             platform=location.platform if location else None,
         )

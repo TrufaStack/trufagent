@@ -145,6 +145,16 @@ tiempo pueden añadirse capacidades como planificación, TDD, diseño visual o
 migraciones, pero deben seleccionarse por evidencia de la tarea y no por el
 tamaño de la biblioteca.
 
+La recomendación también identifica la fase de consumo:
+
+- `explore`: reducir incertidumbre antes de cambiar código;
+- `implement`: guiar el cambio y su evidencia incremental;
+- `verify`: revisar el resultado y proponer memoria durable;
+- `any`: selección explícita del usuario, sin una fase inferida.
+
+La fase forma parte del contrato de `trufagent prepare`; el anfitrión puede
+posponer la carga del cuerpo completo de la skill hasta que llegue esa fase.
+
 ## Límites
 
 - Inventariar una skill no significa confiar en ella.

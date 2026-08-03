@@ -5,7 +5,7 @@ import pytest
 from trufagent.application.model_routing import route_models
 from trufagent.application.task_classifier import classify_task
 from trufagent.application.task_classifier_v2 import classify_task_v2, compact_v1_signals
-from trufagent.domain.prepare_v2 import Complexity, PhaseEffort
+from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, SkillPhase
 from trufagent.domain.task import ModelTier, TaskKind, TaskSignals
 from trufagent.domain.task_v2 import (
     StructuralContext,
@@ -84,14 +84,22 @@ def test_v2_classification_matrix(signals, complexity, tier, skills) -> None:
 
 
 def test_research_uses_frontier_without_an_implementation_phase() -> None:
-    result = classify_task_v2(
-        TaskSignalsV2(kind=TaskKindV2.RESEARCH, uncertainty=Uncertainty.HIGH)
-    )
+    result = classify_task_v2(TaskSignalsV2(kind=TaskKindV2.RESEARCH, uncertainty=Uncertainty.HIGH))
 
     assert result.model_tier == ModelTier.FRONTIER
     assert result.effort.explore == PhaseEffort.HIGH
     assert result.effort.implement == PhaseEffort.NONE
     assert result.effort.verify == PhaseEffort.HIGH
+
+
+def test_each_automatic_skill_is_bound_to_its_runtime_phase() -> None:
+    result = classify_task_v2(TaskSignalsV2(kind=TaskKindV2.FIX, uncertainty=Uncertainty.HIGH))
+
+    assert [(skill.name, skill.phase) for skill in result.skills] == [
+        ("systematic-debugging", SkillPhase.EXPLORE),
+        ("implement-with-evidence", SkillPhase.IMPLEMENT),
+        ("review-and-remember", SkillPhase.VERIFY),
+    ]
 
 
 def test_structural_context_controls_graph_usage_directly() -> None:

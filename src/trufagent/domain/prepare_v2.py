@@ -26,6 +26,13 @@ class PhaseEffort(StrEnum):
     HIGH = "high"
 
 
+class SkillPhase(StrEnum):
+    EXPLORE = "explore"
+    IMPLEMENT = "implement"
+    VERIFY = "verify"
+    ANY = "any"
+
+
 class PrepareTaskSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -46,6 +53,7 @@ class PrepareSkill(BaseModel):
 
     name: str = Field(min_length=1)
     reason: str = Field(min_length=1)
+    phase: SkillPhase
     location: str | None = None
     platform: str | None = None
 

@@ -10,7 +10,7 @@ from trufagent.application.skill_catalog import InMemorySkillCatalog, SkillDescr
 from trufagent.application.task_extractor import TaskIntake
 from trufagent.cli import main
 from trufagent.domain.cartography import GraphQueryResult, GraphReference, GraphState
-from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareStatus
+from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareStatus, SkillPhase
 from trufagent.domain.skills import SkillLocation
 from trufagent.domain.task import ModelTier
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
@@ -44,9 +44,7 @@ def _catalog() -> InMemorySkillCatalog:
                 source="test",
                 version="1",
                 reviewed=reviewed,
-                locations=[
-                    SkillLocation(platform="codex", path=f"/skills/{name}/SKILL.md")
-                ],
+                locations=[SkillLocation(platform="codex", path=f"/skills/{name}/SKILL.md")],
             )
             for name, reviewed in (
                 ("systematic-debugging", True),
@@ -142,6 +140,11 @@ def test_v2_unknown_bug_selects_debugging_and_high_exploration(tmp_path: Path) -
             "completed change requires review and durable-memory triage",
         ),
     ]
+    assert [skill.phase for skill in result.skills] == [
+        SkillPhase.EXPLORE,
+        SkillPhase.IMPLEMENT,
+        SkillPhase.VERIFY,
+    ]
 
 
 def test_v2_normal_feature_is_balanced(tmp_path: Path) -> None:
@@ -191,6 +194,7 @@ def test_v2_user_can_force_a_reviewed_skill(tmp_path: Path) -> None:
         "tdd",
     ]
     assert result.skills[-1].reason == "selected by user override"
+    assert result.skills[-1].phase == SkillPhase.ANY
     assert result.skills[-1].location == "/skills/tdd/SKILL.md"
 
 
@@ -295,9 +299,7 @@ def test_cli_prepare_surfaces_only_questions_when_input_is_missing(
 ) -> None:
     intake = tmp_path / "intake.json"
     intake.write_text(
-        json.dumps(
-            {"task": "Implement the approved Artifact design; its URL is unavailable."}
-        )
+        json.dumps({"task": "Implement the approved Artifact design; its URL is unavailable."})
     )
 
     exit_code = main(["prepare", str(intake), str(tmp_path), "--project", "demo"])
@@ -305,7 +307,5 @@ def test_cli_prepare_surfaces_only_questions_when_input_is_missing(
 
     assert exit_code == 0
     assert output["status"] == "needs_input"
-    assert [question["field"] for question in output["questions"]] == [
-        "artifact_available"
-    ]
+    assert [question["field"] for question in output["questions"]] == ["artifact_available"]
     assert output["task"] is None

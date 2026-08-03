@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareEffort
+from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareEffort, SkillPhase
 from trufagent.domain.task import ModelTier, TaskKind, TaskSignals
 from trufagent.domain.task_v2 import (
     SkillRecommendation,
@@ -124,6 +124,7 @@ def classify_task_v2(signals: TaskSignalsV2) -> TaskClassificationV2:
             SkillRecommendation(
                 name="systematic-debugging",
                 reason="fix cause is not yet demonstrated",
+                phase=SkillPhase.EXPLORE,
             )
         )
         reasons.append("cause-not-established")
@@ -133,10 +134,12 @@ def classify_task_v2(signals: TaskSignalsV2) -> TaskClassificationV2:
                 SkillRecommendation(
                     name="implement-with-evidence",
                     reason="behavior change requires proportionate implementation proof",
+                    phase=SkillPhase.IMPLEMENT,
                 ),
                 SkillRecommendation(
                     name="review-and-remember",
                     reason="completed change requires review and durable-memory triage",
+                    phase=SkillPhase.VERIFY,
                 ),
             ]
         )
@@ -145,6 +148,7 @@ def classify_task_v2(signals: TaskSignalsV2) -> TaskClassificationV2:
             SkillRecommendation(
                 name="brainstorming",
                 reason="task contains open decisions",
+                phase=SkillPhase.EXPLORE,
             )
         )
         reasons.append("open-decisions")

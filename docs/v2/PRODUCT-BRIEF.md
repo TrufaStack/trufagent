@@ -134,6 +134,11 @@ Cada tarea recibe presupuestos simples para:
 Los niveles iniciales son `none`, `low`, `medium` y `high`. El anfitrión conserva
 la coordinación, las herramientas y la autoridad para modificar el proyecto.
 
+Cada skill recomendada declara además cuándo debe cargarse: `explore`,
+`implement` o `verify`. Una selección manual usa `any`, porque Trufagent no debe
+inventar la intención temporal del usuario. Así, una skill necesaria para
+revisar el resultado no consume contexto durante la exploración.
+
 ### Cierre posterior al merge
 
 El cierre genera un resumen compacto con:
@@ -160,7 +165,8 @@ task: fix
 complexity: medium
 model_tier: balanced
 skills:
-  - systematic-debugging
+  - name: systematic-debugging
+    phase: explore
 context:
   memories:
     - authentication-decisions

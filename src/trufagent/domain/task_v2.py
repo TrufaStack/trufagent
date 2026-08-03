@@ -4,7 +4,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.domain.prepare_v2 import Complexity, PrepareEffort
+from trufagent.domain.prepare_v2 import Complexity, PrepareEffort, SkillPhase
 from trufagent.domain.task import ModelTier
 
 
@@ -54,6 +54,7 @@ class SkillRecommendation(BaseModel):
 
     name: str = Field(min_length=1)
     reason: str = Field(min_length=1)
+    phase: SkillPhase
 
 
 class TaskClassificationV2(BaseModel):
