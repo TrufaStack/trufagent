@@ -30,23 +30,21 @@ def test_codex_task_skill_delegates_policy_to_runtime() -> None:
     _, text, _ = _documents("trufagent")
     lowered = text.lower()
 
-    assert "trufagent plan prepare" in text
-    assert "ready_to_plan" in text
+    assert "trufagent prepare" in text
+    assert "needs_input" in text
     assert "questions" in text
     assert "do not invent signal overrides" in lowered
     assert "graphify" in lowered
-    assert "first accessible `locations` path" in lowered
+    assert "`location`" in lowered
     assert "do not enable or scan the full skill library" in lowered
-    assert "`model_route`" in lowered
+    assert "`model_tier`" in lowered
     assert "host owns coordination" in lowered
-    assert "coordinator=none" in lowered
     assert "models resolve" in lowered
     assert "required_symbols" in lowered
     assert "graphify-first" in lowered
-    assert "delegation compile" in lowered
-    assert "delegation dry-run" in lowered
-    assert "shadow" in lowered
-    assert "not enabled yet" in lowered
+    assert "delegation compile" not in lowered
+    assert "delegation dry-run" not in lowered
+    assert "shadow" not in lowered
     for legacy in ("litellm", "scout", "docs/context", "auto-commit"):
         assert legacy not in lowered
 

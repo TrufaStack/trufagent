@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from trufagent.application.plan_task import PlanTaskService
@@ -7,6 +8,7 @@ from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskSe
 from trufagent.application.prepare_v2 import project_prepare_v2
 from trufagent.application.skill_catalog import InMemorySkillCatalog, SkillDescriptor
 from trufagent.application.task_extractor import TaskIntake
+from trufagent.cli import main
 from trufagent.domain.cartography import GraphQueryResult, GraphReference, GraphState
 from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareStatus
 from trufagent.domain.task import ModelTier, TaskKind
@@ -41,6 +43,7 @@ def _catalog() -> InMemorySkillCatalog:
                 source="test",
                 version="1",
                 reviewed=reviewed,
+                locations=[f"/skills/{name}/SKILL.md"],
             )
             for name, reviewed in (
                 ("systematic-debugging", True),
@@ -168,6 +171,7 @@ def test_v2_user_can_force_a_reviewed_skill(tmp_path: Path) -> None:
     assert [(skill.name, skill.reason) for skill in result.skills] == [
         ("tdd", "selected by task strategy or user override")
     ]
+    assert result.skills[0].location == "/skills/tdd/SKILL.md"
 
 
 def test_v2_user_can_exclude_an_automatic_skill(tmp_path: Path) -> None:
@@ -230,3 +234,52 @@ def test_v2_surfaces_unavailable_or_unreviewed_skill_warnings(tmp_path: Path) ->
     assert result.skills == []
     assert any("not reviewed" in warning for warning in result.warnings)
     assert any("not installed" in warning for warning in result.warnings)
+
+
+def test_cli_prepare_emits_the_compact_v2_contract(tmp_path: Path, capsys) -> None:
+    intake = tmp_path / "intake.json"
+    intake.write_text(
+        json.dumps(
+            {
+                "task": "Change one fixed label.",
+                "signal_overrides": {
+                    "kind": "small-change",
+                    "solution_known": True,
+                    "localized": True,
+                },
+            }
+        )
+    )
+
+    exit_code = main(["prepare", str(intake), str(tmp_path), "--project", "demo"])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert output["schema"] == "trufagent.prepare.v2"
+    assert output["status"] == "ready"
+    assert output["task"] == {"kind": "small-change", "complexity": "low"}
+    assert output["model_tier"] == "economy"
+    assert "plan" not in output
+    assert "extraction" not in output
+
+
+def test_cli_prepare_surfaces_only_questions_when_input_is_missing(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    intake = tmp_path / "intake.json"
+    intake.write_text(
+        json.dumps(
+            {"task": "Implement the approved Artifact design; its URL is unavailable."}
+        )
+    )
+
+    exit_code = main(["prepare", str(intake), str(tmp_path), "--project", "demo"])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert output["status"] == "needs_input"
+    assert [question["field"] for question in output["questions"]] == [
+        "artifact_available"
+    ]
+    assert output["task"] is None

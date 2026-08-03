@@ -6,7 +6,7 @@ argument-hint: "<task>"
 
 # Trufagent task adapter
 
-Translate the user's task into the Trufagent v1 runtime. This skill is a thin
+Translate the user's task into the compact Trufagent v2 contract. This skill is a thin
 Claude Code adapter: do not invent effort rules, memory rules, skill selection,
 or model personas here.
 
@@ -27,36 +27,28 @@ or model personas here.
 3. Run:
 
    ```bash
-   uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent plan prepare <intake.json> . 
+   uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent prepare <intake.json> .
    ```
 
 4. Remove the temporary intake file after reading the JSON result.
 
 ## Follow the result
 
-- If `ready_to_plan` is false, ask only the returned `questions`. Do not begin
+- If `status` is `needs_input`, ask only the returned `questions`. Do not begin
   implementation.
-- If it is true, present the selected strategy, effort level, relevant memories,
-  cartography scope, skills, `model_route`, and verification depth compactly.
-- Treat accepted governing memory as constraints. Proposed memory is context
-  only and must be labelled as unreviewed.
-- Use the runtime's exploration, execution, and verification budgets. Do not
+- Otherwise, present task complexity, `model_tier`, `effort`, compact memory and
+  Graphify references, selected skills, and warnings.
+- Load a selected skill from its `location` only when entering the phase that
+  needs it. Do not scan the complete skill catalog.
+- Use the runtime's exploration, implementation, and verification effort. Do not
   turn a small change into a formal design cycle unless the result requires it.
 - Execution still follows Claude Code's normal permissions and the user's
   request. A plan is not permission for unrelated changes.
 
-The current Claude host owns coordination; a prepared embedded plan returns
-`coordinator=none`, so never invoke a second coordinator. Follow the remaining
-phase model tiers when delegation is available; resolve a concrete model with
+The current Claude host owns coordination; never invoke a second coordinator.
+Resolve `model_tier` to a concrete model with
 `trufagent models resolve . --harness claude --tier <tier>` so project
 overrides are honored. Do not upgrade a phase without evidence.
-
-Automatic multi-model execution is not enabled yet. If inspecting a proposed
-delegation, compile it with `trufagent delegation compile` and enforce its
-serial, single-writer boundaries; do not invoke delegates merely because the
-protocol exists. `trufagent delegation dry-run` with scripted handoffs is the
-only generally enabled executor. A read-only shadow adapter exists for
-supervised evaluation only; it is not delegation authority.
 
 Graphify is structural context, not the memory store. Query only the scoped
 cartography suggested by the runtime; never replace decision history with a

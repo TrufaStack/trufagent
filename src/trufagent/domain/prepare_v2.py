@@ -46,6 +46,7 @@ class PrepareSkill(BaseModel):
 
     name: str = Field(min_length=1)
     reason: str = Field(min_length=1)
+    location: str | None = None
 
 
 class PrepareMemoryReference(BaseModel):

@@ -34,19 +34,17 @@ def test_claude_adapter_exposes_three_thin_skills() -> None:
 def test_task_adapter_delegates_policy_to_runtime() -> None:
     document = _skill("trufagent").lower()
 
-    assert "plan prepare" in document
-    assert "ready_to_plan" in document
+    assert "trufagent prepare" in document
+    assert "needs_input" in document
     assert "questions" in document
-    assert "`model_route`" in document
+    assert "`model_tier`" in document
     assert "host owns coordination" in document
-    assert "coordinator=none" in document
     assert "models resolve" in document
     assert "required_symbols" in document
     assert "graphify-first" in document.lower()
-    assert "delegation compile" in document
-    assert "delegation dry-run" in document
-    assert "shadow" in document
-    assert "not enabled yet" in document
+    assert "delegation compile" not in document
+    assert "delegation dry-run" not in document
+    assert "shadow" not in document
     assert "do not invent" in document
     for legacy in ("litellm", "scout", "docs/context", "auto-commit"):
         assert legacy not in document

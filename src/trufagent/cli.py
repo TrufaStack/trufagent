@@ -28,6 +28,7 @@ from trufagent.application.exploration_gate import (
 from trufagent.application.memory_review import MemoryReviewService
 from trufagent.application.plan_task import PlanTaskRequest, PlanTaskService
 from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
+from trufagent.application.prepare_v2 import project_prepare_v2
 from trufagent.application.promotion import evaluate_promotion_readiness
 from trufagent.application.retry_gate import evaluate_supervised_retry
 from trufagent.application.sessions import (
@@ -130,6 +131,13 @@ def _build_parser() -> argparse.ArgumentParser:
     personal_task.add_argument("--use-skill", action="append", default=[])
     personal_task.add_argument("--without-skill", action="append", default=[])
     personal_task.add_argument("--include-user-memory", action="store_true")
+    prepare_v2 = subcommands.add_parser(
+        "prepare", help="Prepare a task using the compact Trufagent v2 contract"
+    )
+    prepare_v2.add_argument("intake", type=Path)
+    prepare_v2.add_argument("project_root", type=Path)
+    prepare_v2.add_argument("--project")
+    prepare_v2.add_argument("--catalog", type=Path)
     continue_task = subcommands.add_parser(
         "task-continue", help="Continue a safe task preview explicitly"
     )
@@ -429,6 +437,34 @@ def _runtime_catalog(project_root: Path, override: Path | None) -> InMemorySkill
     return InMemorySkillCatalog.from_document(SkillCatalogRepository(catalog_path).load())
 
 
+def _prepare_from_files(
+    intake_path: Path,
+    project_root: Path,
+    *,
+    project_override: str | None,
+    catalog_override: Path | None,
+):
+    project = _project(project_root, project_override)
+    intake = TaskIntake.model_validate_json(intake_path.read_text(encoding="utf-8"))
+    repository = MarkdownMemoryRepository(
+        project_root,
+        project=project,
+        user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
+    ).initialize()
+    planner = PlanTaskService(
+        repository,
+        cartography=GraphifyAdapter(),
+        skills=_runtime_catalog(project_root, catalog_override),
+    )
+    return PrepareTaskService(planner).prepare(
+        PrepareTaskRequest(
+            intake=intake,
+            project=project,
+            project_root=project_root,
+        )
+    )
+
+
 def _shadow_schema_path() -> Path:
     path = Path(__file__).resolve().parent / "schemas" / "handoff-schema.json"
     if not path.is_file():
@@ -441,6 +477,21 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "schema":
         print(json.dumps(memory_json_schema(), indent=2))
+        return 0
+
+    if args.command == "prepare":
+        try:
+            prepared = _prepare_from_files(
+                args.intake,
+                args.project_root,
+                project_override=args.project,
+                catalog_override=args.catalog,
+            )
+            result = project_prepare_v2(prepared)
+        except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
+            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
+            return 1
+        print(result.model_dump_json(by_alias=True))
         return 0
 
     if args.command == "task-continue":
@@ -938,24 +989,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "plan" and args.plan_command == "prepare":
         try:
-            project = _project(args.project_root, args.project)
-            intake = TaskIntake.model_validate_json(args.intake.read_text(encoding="utf-8"))
-            repository = MarkdownMemoryRepository(
+            result = _prepare_from_files(
+                args.intake,
                 args.project_root,
-                project=project,
-                user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
-            ).initialize()
-            planner = PlanTaskService(
-                repository,
-                cartography=GraphifyAdapter(),
-                skills=_runtime_catalog(args.project_root, args.catalog),
-            )
-            result = PrepareTaskService(planner).prepare(
-                PrepareTaskRequest(
-                    intake=intake,
-                    project=project,
-                    project_root=args.project_root,
-                )
+                project_override=args.project,
+                catalog_override=args.catalog,
             )
         except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)

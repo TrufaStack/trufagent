@@ -112,7 +112,11 @@ def project_prepare_v2(prepared: PreparedTask) -> PrepareV2Result:
             verify=_effort(plan.strategy.budgets.verification),
         ),
         skills=[
-            PrepareSkill(name=skill.name, reason=_skill_reason(skill.name, reasons))
+            PrepareSkill(
+                name=skill.name,
+                reason=_skill_reason(skill.name, reasons),
+                location=skill.locations[0] if skill.locations else None,
+            )
             for skill in plan.selected_skills
         ],
         context=PrepareContext(
