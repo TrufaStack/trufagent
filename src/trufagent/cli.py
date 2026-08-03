@@ -13,6 +13,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+from trufagent.application.close_v2 import CloseV2Service
 from trufagent.application.delegation import (
     CompileDelegationRequest,
     compile_delegation_protocol,
@@ -46,6 +47,7 @@ from trufagent.application.skill_sanitization import (
 from trufagent.application.task_classifier import classify_task
 from trufagent.application.task_extractor import TaskIntake, extract_task_signals
 from trufagent.domain.attempt import AttemptStatus
+from trufagent.domain.close_v2 import CloseV2Request
 from trufagent.domain.delegation import (
     ActionScope,
     DelegationPhase,
@@ -73,6 +75,7 @@ from trufagent.infrastructure.codex_skill_surface import (
     plan_codex_skill_surface,
 )
 from trufagent.infrastructure.fake_phase_adapter import ScriptedPhaseAdapter
+from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter, GraphifyAdapterError
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository, MemoryVaultError
 from trufagent.infrastructure.memory_index import SqliteMemoryIndex
@@ -150,6 +153,10 @@ def _build_parser() -> argparse.ArgumentParser:
     prepare_v2.add_argument("--project")
     prepare_v2.add_argument("--catalog", type=Path)
     prepare_v2.add_argument("--harness", choices=[item.value for item in Harness])
+    close_v2 = subcommands.add_parser("close", help="Close a confirmed merged change")
+    close_v2.add_argument("request", type=Path)
+    close_v2.add_argument("project_root", type=Path)
+    close_v2.add_argument("--project")
     continue_task = subcommands.add_parser(
         "task-continue", help="Continue a safe task preview explicitly"
     )
@@ -587,6 +594,38 @@ def main(argv: list[str] | None = None) -> int:
             )
             result = project_prepare_v2(prepared, harness=args.harness)
         except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
+            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
+            return 1
+        print(result.model_dump_json(by_alias=True))
+        return 0
+
+    if args.command == "close":
+        try:
+            project = _project(args.project_root, args.project)
+            repository = MarkdownMemoryRepository(
+                args.project_root,
+                project=project,
+                user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
+            ).initialize()
+            request = CloseV2Request.model_validate_json(
+                args.request.read_text(encoding="utf-8")
+            )
+            result = CloseV2Service(
+                repository,
+                SqliteMemoryIndex(
+                    Path(args.project_root) / ".trufagent" / "memory-index.sqlite3"
+                ),
+                GitMergeVerifier(),
+                GraphifyAdapter(),
+                project=project,
+            ).close(args.project_root, request)
+        except (
+            OSError,
+            ValueError,
+            ValidationError,
+            GraphifyAdapterError,
+            MemoryVaultError,
+        ) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
         print(result.model_dump_json(by_alias=True))
