@@ -21,6 +21,10 @@ _SAFE_NAME = re.compile(r"[^a-zA-Z0-9_-]+")
 _MAX_SKILL_BYTES = 2_000_000
 
 
+def _host_family(platform: str) -> str:
+    return platform.split(":", 1)[0].split("-", 1)[0]
+
+
 class SkillDiscoveryResult(BaseModel):
     catalog: SkillCatalogDocument
     warnings: list[str] = Field(default_factory=list)
@@ -105,9 +109,22 @@ class SkillDiscovery:
             by_name[entry.name].append(entry)
         for name, variants in by_name.items():
             if len(variants) > 1:
+                conflicts: set[str] = set()
+                for index, variant in enumerate(variants):
+                    families = {_host_family(location.platform) for location in variant.locations}
+                    for other in variants[index + 1 :]:
+                        other_families = {
+                            _host_family(location.platform) for location in other.locations
+                        }
+                        if families & other_families:
+                            conflicts.update((variant.id, other.id))
                 for variant in variants:
-                    variant.active = False
-                warnings.append(f"skill {name!r} has {len(variants)} different installed variants")
+                    if variant.id in conflicts:
+                        variant.active = False
+                if conflicts:
+                    warnings.append(
+                        f"skill {name!r} has conflicting variants for the same host"
+                    )
 
         return SkillDiscoveryResult(
             catalog=SkillCatalogDocument(

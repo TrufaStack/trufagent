@@ -23,6 +23,7 @@ def test_cli_resolves_default_and_project_model_profiles(tmp_path: Path, capsys)
     )
     default = json.loads(capsys.readouterr().out)
     assert default["model"] == "gpt-5.6-luna"
+    assert default["reasoning_effort"] == "max"
     assert default["source"] == "default"
 
     config = tmp_path / ".trufagent" / "config.yaml"
@@ -45,4 +46,5 @@ def test_cli_resolves_default_and_project_model_profiles(tmp_path: Path, capsys)
     )
     overridden = json.loads(capsys.readouterr().out)
     assert overridden["model"] == "local-model"
+    assert overridden["reasoning_effort"] == "max"
     assert overridden["source"] == "project"

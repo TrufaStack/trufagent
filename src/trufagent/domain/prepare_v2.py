@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.domain.task import ModelTier, TaskKind
+from trufagent.domain.task import ModelTier
 
 
 class PrepareStatus(StrEnum):
@@ -29,7 +29,7 @@ class PhaseEffort(StrEnum):
 class PrepareTaskSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    kind: TaskKind
+    kind: Literal["small-change", "fix", "feature", "research", "architecture"]
     complexity: Complexity
 
 
@@ -47,6 +47,7 @@ class PrepareSkill(BaseModel):
     name: str = Field(min_length=1)
     reason: str = Field(min_length=1)
     location: str | None = None
+    platform: str | None = None
 
 
 class PrepareMemoryReference(BaseModel):

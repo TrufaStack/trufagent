@@ -25,6 +25,7 @@ from trufagent.domain.delegation import (
 )
 from trufagent.domain.task import Harness, ModelTier
 from trufagent.infrastructure.context_projection import create_context_projection
+from trufagent.infrastructure.model_profiles import resolve_reasoning_effort
 from trufagent.infrastructure.shadow_phase_adapter import ShadowProgress, ShadowResult
 
 
@@ -76,12 +77,6 @@ class ShadowResponseError(ShadowProviderError):
 
 
 RunCommand = Callable[..., subprocess.CompletedProcess[str]]
-
-_EFFORT = {
-    ModelTier.ECONOMY: "low",
-    ModelTier.BALANCED: "medium",
-    ModelTier.FRONTIER: "high",
-}
 
 _TARGET_LIMIT = 24
 _FILE_LIMIT = 12
@@ -278,7 +273,7 @@ class CodexShadowRunner:
             "--model",
             step.model or "",
             "--config",
-            f'model_reasoning_effort="{_EFFORT[step.tier]}"',
+            f'model_reasoning_effort="{resolve_reasoning_effort(Harness.CODEX, step.tier)}"',
             "exec",
             "--ephemeral",
             "--skip-git-repo-check",

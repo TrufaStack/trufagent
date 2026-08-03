@@ -10,6 +10,7 @@ from trufagent.application.task_extractor import (
     TaskIntake,
     extract_task_signals,
 )
+from trufagent.domain.task import Harness
 
 
 class PrepareTaskRequest(BaseModel):
@@ -23,6 +24,7 @@ class PrepareTaskRequest(BaseModel):
     cartography_token_budget: int = Field(default=1_000, ge=64)
     use_skills: list[str] = Field(default_factory=list)
     without_skills: list[str] = Field(default_factory=list)
+    harness: Harness | None = None
 
 
 class PreparedTask(BaseModel):
@@ -50,6 +52,7 @@ class PrepareTaskService:
                 use_skills=request.use_skills,
                 without_skills=request.without_skills,
                 required_symbols=request.intake.required_symbols,
+                harness=request.harness,
             )
         )
         return PreparedTask(extraction=extraction, plan=plan)

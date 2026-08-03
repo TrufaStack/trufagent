@@ -27,7 +27,7 @@ or model personas here.
 3. Run:
 
    ```bash
-   uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent prepare <intake.json> .
+   uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent prepare <intake.json> . --harness claude
    ```
 
 4. Remove the temporary intake file after reading the JSON result.

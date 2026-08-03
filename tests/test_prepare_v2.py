@@ -11,7 +11,8 @@ from trufagent.application.task_extractor import TaskIntake
 from trufagent.cli import main
 from trufagent.domain.cartography import GraphQueryResult, GraphReference, GraphState
 from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareStatus
-from trufagent.domain.task import ModelTier, TaskKind
+from trufagent.domain.skills import SkillLocation
+from trufagent.domain.task import ModelTier
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
 from trufagent.infrastructure.memory_markdown import load_memory_markdown
 
@@ -43,7 +44,9 @@ def _catalog() -> InMemorySkillCatalog:
                 source="test",
                 version="1",
                 reviewed=reviewed,
-                locations=[f"/skills/{name}/SKILL.md"],
+                locations=[
+                    SkillLocation(platform="codex", path=f"/skills/{name}/SKILL.md")
+                ],
             )
             for name, reviewed in (
                 ("systematic-debugging", True),
@@ -108,7 +111,7 @@ def test_v2_small_change_is_low_complexity_and_economy(tmp_path: Path) -> None:
     )
 
     assert result.task is not None
-    assert result.task.kind == TaskKind.SMALL_CHANGE
+    assert result.task.kind == "small-change"
     assert result.task.complexity == Complexity.LOW
     assert result.model_tier == ModelTier.ECONOMY
     assert result.skills == []
@@ -127,7 +130,7 @@ def test_v2_unknown_bug_selects_debugging_and_high_exploration(tmp_path: Path) -
     assert result.effort is not None
     assert result.effort.explore == PhaseEffort.HIGH
     assert [(skill.name, skill.reason) for skill in result.skills] == [
-        ("systematic-debugging", "bug cause is not yet demonstrated")
+        ("systematic-debugging", "fix cause is not yet demonstrated")
     ]
 
 
@@ -169,7 +172,7 @@ def test_v2_user_can_force_a_reviewed_skill(tmp_path: Path) -> None:
     )
 
     assert [(skill.name, skill.reason) for skill in result.skills] == [
-        ("tdd", "selected by task strategy or user override")
+        ("tdd", "selected by user override")
     ]
     assert result.skills[0].location == "/skills/tdd/SKILL.md"
 

@@ -27,6 +27,7 @@ from trufagent.domain.memory import MemoryKind
 from trufagent.domain.task import (
     AutonomyBoundary,
     ContextSelection,
+    Harness,
     ModelRouting,
     TaskKind,
     TaskSignals,
@@ -48,6 +49,7 @@ class PlanTaskRequest(BaseModel):
     use_skills: list[str] = Field(default_factory=list)
     without_skills: list[str] = Field(default_factory=list)
     required_symbols: list[str] = Field(default_factory=list)
+    harness: Harness | None = None
 
 
 class TaskPlan(BaseModel):
@@ -133,7 +135,10 @@ class PlanTaskService:
             for name in strategy.skills + request.use_skills
             if name not in set(request.without_skills)
         ]
-        skill_selection = self.skills.select(requested_skills)
+        skill_selection = self.skills.select(
+            requested_skills,
+            harness=request.harness.value if request.harness else None,
+        )
         warnings.extend(skill_selection.warnings)
 
         evidence = list(strategy.evidence_required)

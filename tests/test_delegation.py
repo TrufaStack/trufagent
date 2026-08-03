@@ -34,7 +34,7 @@ def test_protocol_is_serial_and_only_execution_can_write(tmp_path: Path) -> None
     assert protocol.max_parallel == 1
     assert [step.model for step in protocol.steps] == [
         "gpt-5.6-luna",
-        "gpt-5.6-terra",
+        "gpt-5.6-sol",
         "gpt-5.6-luna",
         "gpt-5.6-sol",
     ]

@@ -38,6 +38,10 @@ from trufagent.application.sessions import (
     StartSessionService,
 )
 from trufagent.application.skill_catalog import InMemorySkillCatalog
+from trufagent.application.skill_sanitization import (
+    apply_skill_sanitization,
+    plan_skill_sanitization,
+)
 from trufagent.application.task_classifier import classify_task
 from trufagent.application.task_extractor import TaskIntake, extract_task_signals
 from trufagent.domain.attempt import AttemptStatus
@@ -50,6 +54,8 @@ from trufagent.domain.delegation import (
     UsageRecord,
 )
 from trufagent.domain.memory import MemoryReviewMetadata, memory_json_schema
+from trufagent.domain.skill_audit import SkillAuditReport
+from trufagent.domain.skill_sanitization import SkillSanitizationManifest
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
 from trufagent.domain.task_preview import TaskPreviewRecord
 from trufagent.infrastructure.attempt_fs import (
@@ -92,8 +98,11 @@ from trufagent.infrastructure.promotion_review import (
 from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
 from trufagent.infrastructure.session_fs import FileSessionRepository
 from trufagent.infrastructure.shadow_phase_adapter import ShadowPhaseAdapter
+from trufagent.infrastructure.skill_audit import audit_skill_catalog
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
 from trufagent.infrastructure.skill_discovery import SkillDiscovery, default_skill_roots
+from trufagent.infrastructure.skill_report_fs import save_json_document
+from trufagent.infrastructure.skill_sources_github import sync_pilot_sources
 from trufagent.infrastructure.task_preview_fs import (
     FileTaskPreviewRepository,
     TaskPreviewError,
@@ -138,6 +147,7 @@ def _build_parser() -> argparse.ArgumentParser:
     prepare_v2.add_argument("project_root", type=Path)
     prepare_v2.add_argument("--project")
     prepare_v2.add_argument("--catalog", type=Path)
+    prepare_v2.add_argument("--harness", choices=[item.value for item in Harness])
     continue_task = subcommands.add_parser(
         "task-continue", help="Continue a safe task preview explicitly"
     )
@@ -304,6 +314,65 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path.home() / ".trufagent" / "skills" / "catalog.yaml",
     )
+    search_skills = skills_subcommands.add_parser(
+        "search", help="Search reviewed skills by capability"
+    )
+    search_skills.add_argument("query")
+    search_skills.add_argument("--harness", choices=[item.value for item in Harness])
+    search_skills.add_argument("--limit", type=int, default=10)
+    search_skills.add_argument("--include-unreviewed", action="store_true")
+    search_skills.add_argument(
+        "--catalog",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "catalog.yaml",
+    )
+    audit_skills = skills_subcommands.add_parser(
+        "audit", help="Statically evaluate every local catalog variant"
+    )
+    audit_skills.add_argument(
+        "--catalog",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "catalog.yaml",
+    )
+    audit_skills.add_argument(
+        "--report",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "audit.json",
+    )
+    sources = skills_subcommands.add_parser(
+        "sources", help="Refresh the governed remote source registry"
+    )
+    sources.add_argument(
+        "--registry",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "sources.json",
+    )
+    sanitize = skills_subcommands.add_parser(
+        "sanitize", help="Plan a recoverable skill library sanitization"
+    )
+    sanitize_mode = sanitize.add_mutually_exclusive_group(required=True)
+    sanitize_mode.add_argument("--plan", action="store_true")
+    sanitize_mode.add_argument("--apply", type=Path, metavar="MANIFEST")
+    sanitize.add_argument(
+        "--catalog",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "catalog.yaml",
+    )
+    sanitize.add_argument(
+        "--audit",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "audit.json",
+    )
+    sanitize.add_argument(
+        "--manifest",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "sanitization-plan.json",
+    )
+    sanitize.add_argument(
+        "--archive-root",
+        type=Path,
+        default=Path.home() / ".trufagent" / "skills" / "archive" / "v1",
+    )
     profile = skills_subcommands.add_parser(
         "profile", help="Plan or apply a curated harness skill surface"
     )
@@ -443,6 +512,7 @@ def _prepare_from_files(
     *,
     project_override: str | None,
     catalog_override: Path | None,
+    harness: Harness | None = None,
 ):
     project = _project(project_root, project_override)
     intake = TaskIntake.model_validate_json(intake_path.read_text(encoding="utf-8"))
@@ -461,6 +531,7 @@ def _prepare_from_files(
             intake=intake,
             project=project,
             project_root=project_root,
+            harness=harness,
         )
     )
 
@@ -486,8 +557,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.project_root,
                 project_override=args.project,
                 catalog_override=args.catalog,
+                harness=Harness(args.harness) if args.harness else None,
             )
-            result = project_prepare_v2(prepared)
+            result = project_prepare_v2(prepared, harness=args.harness)
         except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
@@ -1023,7 +1095,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "skills":
-        repository = SkillCatalogRepository(args.catalog)
+        catalog_path = getattr(
+            args, "catalog", Path.home() / ".trufagent" / "skills" / "catalog.yaml"
+        )
+        repository = SkillCatalogRepository(catalog_path)
         try:
             if args.skills_command == "sync":
                 roots, metadata = default_skill_roots(Path.home())
@@ -1054,6 +1129,118 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.skills_command == "list":
                 print(repository.load().model_dump_json(by_alias=True))
+            elif args.skills_command == "search":
+                library = InMemorySkillCatalog.from_document(repository.load())
+                matches = library.search(
+                    args.query,
+                    harness=args.harness,
+                    limit=args.limit,
+                    reviewed_only=not args.include_unreviewed,
+                )
+                print(
+                    json.dumps(
+                        {
+                            "schema": "trufagent.skills.search.v2",
+                            "query": args.query,
+                            "matches": [
+                                match.model_dump(mode="json") for match in matches
+                            ],
+                        }
+                    )
+                )
+            elif args.skills_command == "audit":
+                report = audit_skill_catalog(repository.load())
+                save_json_document(args.report, report.model_dump_json(indent=2, by_alias=True))
+                print(
+                    json.dumps(
+                        {
+                            "status": "success",
+                            "report": str(args.report),
+                            "entries": len(report.entries),
+                            "reviewed": sum(entry.reviewed for entry in report.entries),
+                            "candidates": sum(
+                                entry.disposition == "candidate" for entry in report.entries
+                            ),
+                            "review": sum(
+                                entry.disposition == "review" for entry in report.entries
+                            ),
+                            "blocked": sum(
+                                entry.disposition == "blocked" for entry in report.entries
+                            ),
+                        }
+                    )
+                )
+            elif args.skills_command == "sources":
+                catalog = repository.load()
+                registry = sync_pilot_sources(
+                    {entry.fingerprint for entry in catalog.entries}
+                )
+                save_json_document(
+                    args.registry, registry.model_dump_json(indent=2, by_alias=True)
+                )
+                print(
+                    json.dumps(
+                        {
+                            "status": "success",
+                            "registry": str(args.registry),
+                            "sources": len(registry.sources),
+                        }
+                    )
+                )
+            elif args.skills_command == "sanitize":
+                if args.plan:
+                    audit = SkillAuditReport.model_validate_json(
+                        args.audit.read_text(encoding="utf-8")
+                    )
+                    manifest = plan_skill_sanitization(
+                        repository.load(), audit, archive_root=args.archive_root
+                    )
+                    save_json_document(
+                        args.manifest, manifest.model_dump_json(indent=2, by_alias=True)
+                    )
+                    tiers = {
+                        tier: sum(entry.tier == tier for entry in manifest.entries)
+                        for tier in ("core", "profile", "cold", "quarantine")
+                    }
+                    print(
+                        json.dumps(
+                            {
+                                "status": "planned",
+                                "manifest": str(args.manifest),
+                                "entries": len(manifest.entries),
+                                "tiers": tiers,
+                                "mutations": 0,
+                            }
+                        )
+                    )
+                else:
+                    manifest = SkillSanitizationManifest.model_validate_json(
+                        args.apply.read_text(encoding="utf-8")
+                    )
+                    catalog = repository.load()
+                    result = apply_skill_sanitization(
+                        manifest,
+                        catalog,
+                        movable_roots=[
+                            Path.home() / ".codex" / "skills",
+                            Path.home() / ".claude" / "skills",
+                        ],
+                    )
+                    repository.save(catalog)
+                    roots, metadata = default_skill_roots(Path.home())
+                    synced = repository.sync(
+                        SkillDiscovery(roots, root_metadata=metadata).scan().catalog
+                    )
+                    print(
+                        json.dumps(
+                            {
+                                "status": "applied",
+                                **result,
+                                "catalog_entries": len(synced.entries),
+                                "recoverable": True,
+                            }
+                        )
+                    )
             else:
                 surface = plan_codex_skill_surface(repository.load(), args.skill_root)
                 if args.apply:

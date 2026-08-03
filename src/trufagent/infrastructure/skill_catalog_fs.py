@@ -9,6 +9,13 @@ import yaml
 from trufagent.domain.skills import SkillCatalogDocument
 
 
+def _host_families(entry) -> set[str]:
+    return {
+        location.platform.split(":", 1)[0].split("-", 1)[0]
+        for location in entry.locations
+    }
+
+
 class SkillCatalogRepository:
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
@@ -44,17 +51,25 @@ class SkillCatalogRepository:
         )
         active_choices = (
             {
-                entry.name: entry.fingerprint
+                (entry.name, entry.fingerprint)
                 for entry in existing.entries
                 if entry.active and entry.reviewed
             }
             if existing
             else {}
         )
+        quarantined = (
+            {(entry.name, entry.fingerprint) for entry in existing.entries if entry.quarantined}
+            if existing
+            else set()
+        )
         for entry in discovered.entries:
             entry.reviewed = reviews.get((entry.name, entry.fingerprint), False)
-            if entry.name in active_choices:
-                entry.active = entry.fingerprint == active_choices[entry.name]
+            entry.quarantined = (entry.name, entry.fingerprint) in quarantined
+            if entry.quarantined:
+                entry.active = False
+            if (entry.name, entry.fingerprint) in active_choices:
+                entry.active = not entry.quarantined
         self.save(discovered)
         return discovered
 
@@ -64,8 +79,9 @@ class SkillCatalogRepository:
         if selected is None:
             raise KeyError(entry_id)
         if activate:
+            selected_families = _host_families(selected)
             for entry in catalog.entries:
-                if entry.name == selected.name:
+                if entry.name == selected.name and selected_families & _host_families(entry):
                     entry.active = entry.id == selected.id
         selected.reviewed = True
         self.save(catalog)

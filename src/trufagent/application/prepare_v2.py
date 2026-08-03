@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from trufagent.application.prepare_task import PreparedTask
+from trufagent.application.task_classifier_v2 import classify_task_v2, compact_v1_signals
 from trufagent.domain.prepare_v2 import (
-    Complexity,
-    PhaseEffort,
     PrepareContext,
-    PrepareEffort,
     PrepareGraphReference,
     PrepareMemoryReference,
     PrepareQuestion,
@@ -14,69 +12,13 @@ from trufagent.domain.prepare_v2 import (
     PrepareTaskSummary,
     PrepareV2Result,
 )
-from trufagent.domain.task import EffortLevel, Level, ModelTier, RiskLevel
-
-_COMPLEXITY_ORDER = {
-    Complexity.LOW: 0,
-    Complexity.MEDIUM: 1,
-    Complexity.HIGH: 2,
-}
-
-_MODEL_ORDER = {
-    ModelTier.NONE: 0,
-    ModelTier.ECONOMY: 1,
-    ModelTier.BALANCED: 2,
-    ModelTier.FRONTIER: 3,
-}
 
 
-def _max_complexity(*values: Complexity) -> Complexity:
-    return max(values, key=_COMPLEXITY_ORDER.__getitem__)
-
-
-def _complexity(prepared: PreparedTask) -> Complexity:
-    if prepared.plan is None:
-        raise ValueError("a ready prepared task must include a plan")
-    profile = prepared.plan.strategy.task_profile
-    ambiguity = {
-        Level.LOW: Complexity.LOW,
-        Level.MEDIUM: Complexity.MEDIUM,
-        Level.HIGH: Complexity.HIGH,
-    }[profile.ambiguity]
-    risk = {
-        RiskLevel.LOW: Complexity.LOW,
-        RiskLevel.MEDIUM: Complexity.MEDIUM,
-        RiskLevel.HIGH: Complexity.HIGH,
-        RiskLevel.CRITICAL: Complexity.HIGH,
-    }[profile.risk]
-    return _max_complexity(ambiguity, risk)
-
-
-def _effort(value: EffortLevel) -> PhaseEffort:
-    if value == EffortLevel.CRITICAL:
-        return PhaseEffort.HIGH
-    return PhaseEffort(value.value)
-
-
-def _model_tier(prepared: PreparedTask) -> ModelTier:
-    if prepared.plan is None:
-        raise ValueError("a ready prepared task must include a plan")
-    route = prepared.plan.model_route
-    return max(
-        (route.exploration, route.execution, route.verification),
-        key=_MODEL_ORDER.__getitem__,
-    )
-
-
-def _skill_reason(name: str, reasons: list[str]) -> str:
-    if name == "systematic-debugging" and "unknown-cause" in reasons:
-        return "bug cause is not yet demonstrated"
-    if name == "brainstorming" and "open-decisions" in reasons:
-        return "task contains open decisions"
-    return "selected by task strategy or user override"
-
-
-def project_prepare_v2(prepared: PreparedTask) -> PrepareV2Result:
+def project_prepare_v2(
+    prepared: PreparedTask,
+    *,
+    harness: str | None = None,
+) -> PrepareV2Result:
     """Project the current planner into the compact v2 contract.
 
     This is a compatibility boundary: v1 remains authoritative while the v2
@@ -98,27 +40,52 @@ def project_prepare_v2(prepared: PreparedTask) -> PrepareV2Result:
 
     plan = prepared.plan
     context = plan.context
-    reasons = list(plan.strategy.reasons)
+    signals_v2 = compact_v1_signals(extraction.signals)
+    classification = classify_task_v2(signals_v2)
+    selected = {skill.name: skill for skill in plan.selected_skills}
+    recommended_locations = {
+        name: skill.location_for(harness) for name, skill in selected.items()
+    }
+    skills = [
+        PrepareSkill(
+            name=recommendation.name,
+            reason=recommendation.reason,
+            location=(
+                recommended_locations[recommendation.name].path
+                if recommendation.name in recommended_locations
+                and recommended_locations[recommendation.name] is not None
+                else None
+            ),
+            platform=(
+                recommended_locations[recommendation.name].platform
+                if recommendation.name in recommended_locations
+                and recommended_locations[recommendation.name] is not None
+                else None
+            ),
+        )
+        for recommendation in classification.skills
+        if recommendation.name in selected
+    ]
+    recommended_names = {skill.name for skill in skills}
+    skills.extend(
+        PrepareSkill(
+            name=skill.name,
+            reason="selected by user override",
+            location=(location.path if (location := skill.location_for(harness)) else None),
+            platform=location.platform if location else None,
+        )
+        for skill in plan.selected_skills
+        if skill.name not in recommended_names
+    )
     return PrepareV2Result(
         status=PrepareStatus.READY,
         task=PrepareTaskSummary(
-            kind=extraction.signals.kind,
-            complexity=_complexity(prepared),
+            kind=signals_v2.kind.value,
+            complexity=classification.complexity,
         ),
-        model_tier=_model_tier(prepared),
-        effort=PrepareEffort(
-            explore=_effort(plan.strategy.budgets.exploration),
-            implement=_effort(plan.strategy.budgets.execution),
-            verify=_effort(plan.strategy.budgets.verification),
-        ),
-        skills=[
-            PrepareSkill(
-                name=skill.name,
-                reason=_skill_reason(skill.name, reasons),
-                location=skill.locations[0] if skill.locations else None,
-            )
-            for skill in plan.selected_skills
-        ],
+        model_tier=classification.model_tier,
+        effort=classification.effort,
+        skills=skills,
         context=PrepareContext(
             memories=[
                 PrepareMemoryReference(
@@ -137,5 +104,5 @@ def project_prepare_v2(prepared: PreparedTask) -> PrepareV2Result:
             omitted_count=context.omitted_count,
         ),
         warnings=list(dict.fromkeys(context.warnings + plan.warnings)),
-        reasons=reasons,
+        reasons=classification.reasons,
     )

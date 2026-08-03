@@ -7,19 +7,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from trufagent.domain.task import Harness, ModelTier
 
-_MODELS: dict[Harness, dict[ModelTier, str | None]] = {
+_MODELS: dict[Harness, dict[ModelTier, tuple[str | None, str | None]]] = {
     Harness.CLAUDE: {
-        ModelTier.NONE: None,
+        ModelTier.NONE: (None, None),
         # Haiku failed the C01 autonomy and no-diagnostic-command judges.
-        ModelTier.ECONOMY: "sonnet",
-        ModelTier.BALANCED: "sonnet",
-        ModelTier.FRONTIER: "opus",
+        ModelTier.ECONOMY: ("sonnet", None),
+        ModelTier.BALANCED: ("sonnet", None),
+        ModelTier.FRONTIER: ("opus", None),
     },
     Harness.CODEX: {
-        ModelTier.NONE: None,
-        ModelTier.ECONOMY: "gpt-5.6-luna",
-        ModelTier.BALANCED: "gpt-5.6-terra",
-        ModelTier.FRONTIER: "gpt-5.6-sol",
+        ModelTier.NONE: (None, None),
+        ModelTier.ECONOMY: ("gpt-5.6-luna", "max"),
+        ModelTier.BALANCED: ("gpt-5.6-sol", "low"),
+        ModelTier.FRONTIER: ("gpt-5.6-sol", "low"),
     },
 }
 
@@ -45,6 +45,7 @@ class ResolvedModel(BaseModel):
     harness: Harness
     tier: ModelTier
     model: str | None
+    reasoning_effort: str | None = None
     source: str
 
 
@@ -71,7 +72,11 @@ def resolve_model(
         model = getattr(getattr(overrides, harness.value), tier.value)
         if model is not None:
             return model
-    return _MODELS[harness][tier]
+    return _MODELS[harness][tier][0]
+
+
+def resolve_reasoning_effort(harness: Harness, tier: ModelTier) -> str | None:
+    return _MODELS[harness][tier][1]
 
 
 def resolve_project_model(
@@ -87,5 +92,6 @@ def resolve_project_model(
         harness=harness,
         tier=tier,
         model=resolve_model(harness, tier, overrides),
+        reasoning_effort=resolve_reasoning_effort(harness, tier),
         source="project" if configured is not None else "default",
     )

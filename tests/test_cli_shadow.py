@@ -118,7 +118,7 @@ def test_shadow_prepares_without_query_or_provider_by_default(
     preflight = output["preflight"]
     assert preflight["schema"] == "trufagent.shadow-preflight.v1"
     assert preflight["status"] == "ready"
-    assert preflight["model"] == "gpt-5.6-terra"
+    assert preflight["model"] == "gpt-5.6-sol"
     assert preflight["tier"] == "balanced"
     assert preflight["budget_limit_usd"] == "0.50"
     assert preflight["authorized_estimate_usd"] == "0.10"

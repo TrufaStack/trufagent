@@ -78,6 +78,18 @@ Trufagent recomienda uno de tres niveles:
 La recomendación orienta al anfitrión; no inicia por sí sola otros modelos ni
 procesos.
 
+Perfiles Codex iniciales:
+
+| Nivel | Modelo | Reasoning effort |
+| --- | --- | --- |
+| `economy` | GPT-5.6-Luna | `max` |
+| `balanced` | GPT-5.6-Sol | `low` |
+| `frontier` | GPT-5.6-Sol | `low` |
+
+El tier expresa una política de coste y comportamiento, no una escala lineal de
+potencia. `models resolve` traduce el tier al perfil concreto del anfitrión y
+expone tanto modelo como reasoning effort.
+
 ### Selección proporcional de skills
 
 Las skills aportan conocimiento procedimental: depuración, planificación, TDD,
@@ -105,6 +117,11 @@ Trufagent consulta primero metadatos compactos y carga las instrucciones
 completas solamente después de seleccionar una skill. El usuario puede forzar o
 excluir skills. El catálogo completo no debe ocupar el contexto inicial ni
 competir por activarse en cada tarea.
+
+La biblioteca se actualiza desde las skills instaladas de Codex, Claude y sus
+plugins. Conserva variantes por anfitrión, permite buscar capacidades por nombre
+y descripción, y exige revisión antes de una selección automática. Su contrato
+se detalla en `SKILL-LIBRARY.md`.
 
 ### Comportamiento por fase
 

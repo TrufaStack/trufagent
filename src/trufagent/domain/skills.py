@@ -24,6 +24,7 @@ class SkillCatalogEntry(BaseModel):
     reviewed: bool = False
     active: bool = True
     available: bool = True
+    quarantined: bool = False
     locations: list[SkillLocation] = Field(default_factory=list)
 
 

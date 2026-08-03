@@ -21,7 +21,7 @@ verification.
    the task into a shell command. Add `required_symbols` only when the user or
    an approved plan explicitly names them; never invent targets to trigger
    Graphify-first.
-3. Run `trufagent prepare <intake-path> .`.
+3. Run `trufagent prepare <intake-path> . --harness codex`.
 4. Remove the temporary file after parsing the JSON result.
 5. If `status` is `needs_input`, ask only the returned `questions` and pause.
 6. Otherwise, state the task complexity and follow `model_tier` and the
@@ -31,9 +31,9 @@ verification.
    needs it. Do not enable or scan the full skill library.
 
 The current Codex host owns coordination; never spawn a second coordinator.
-Treat `model_tier` as a routing recommendation: economy maps to GPT-5.6-Luna,
-balanced to GPT-5.6-Terra, and frontier to GPT-5.6-Sol unless project
-configuration overrides them. Resolve the concrete choice with
+Treat `model_tier` as a routing recommendation: economy maps to GPT-5.6-Luna
+with maximum reasoning effort; balanced and frontier map to GPT-5.6-Sol with
+low reasoning effort unless project configuration overrides the model. Resolve with
 `trufagent models resolve . --harness codex --tier <tier>`. Never upgrade a
 phase merely because a stronger model exists.
 
