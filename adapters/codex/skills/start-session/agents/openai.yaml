@@ -1,0 +1,4 @@
+interface:
+  display_name: "Start Trufagent Session"
+  short_description: "Resume work from a compact governed handoff"
+  default_prompt: "Use $start-session to resume this project from its compact handoff."

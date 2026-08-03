@@ -1,0 +1,5 @@
+# Managed by Trufagent. Changes require explicit migration.
+/memory/project/
+/state/
+/cartography/
+/memory-index.sqlite3

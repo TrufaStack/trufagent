@@ -1,0 +1,6 @@
+schema: trufagent.project.v1
+project: trufagent
+skills:
+  catalog: /home/trufastack/.trufagent/skills/catalog.yaml
+cartography:
+  required: true

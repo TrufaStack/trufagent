@@ -1,7 +1,7 @@
 {
   "name": "trufagent",
-  "description": "Multi-agent development framework for Claude Code. Manages a fleet of specialized sub-agents routed via LiteLLM with persistent project context and structured workflow.",
-  "version": "0.3.0",
+  "description": "Context-aware effort orchestration for Claude Code with governed memory, Graphify cartography, and task-sized workflows.",
+  "version": "0.4.0",
   "author": {
     "name": "TrufaStack",
     "email": "pe.gallardo97@gmail.com"

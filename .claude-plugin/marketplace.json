@@ -5,15 +5,15 @@
     "email": "pe.gallardo97@gmail.com"
   },
   "metadata": {
-    "description": "Multi-agent development framework for Claude Code with LiteLLM routing",
-    "version": "0.3.0"
+    "description": "Context-aware effort orchestration for Claude Code",
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "trufagent",
       "source": "./",
-      "description": "Multi-agent development framework for Claude Code. Manages a fleet of specialized sub-agents (scout, runner, thinker, builder, reviewer, writer, critic, designer) routed via LiteLLM with persistent project context and structured workflow.",
-      "version": "0.3.0",
+      "description": "Context-aware effort orchestration with governed memory, Graphify cartography, and task-sized workflows.",
+      "version": "0.4.0",
       "author": {
         "name": "TrufaStack",
         "email": "pe.gallardo97@gmail.com"
@@ -22,9 +22,9 @@
       "repository": "https://github.com/TrufaStack/trufagent",
       "license": "MIT",
       "keywords": [
-        "multi-agent",
-        "litellm",
-        "fleet",
+        "context",
+        "memory",
+        "graphify",
         "workflow",
         "delegation"
       ]

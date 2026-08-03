@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {"type": "string"},
+    "skill_invoked": {"type": "boolean"},
+    "runtime_called": {"type": "boolean"},
+    "ready_to_plan": {"type": "boolean"},
+    "autonomy": {
+      "type": "string",
+      "enum": ["proceed", "announce", "confirm", "block"]
+    },
+    "exploration": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "critical"]
+    },
+    "execution": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "critical"]
+    },
+    "verification": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "critical"]
+    },
+    "user_action": {
+      "type": "string",
+      "enum": ["proceed", "confirm", "request-artifact", "blocked"]
+    },
+    "implementation_started": {"type": "boolean"},
+    "diagnostic_command_ran": {"type": "boolean"},
+    "summary": {"type": "string"}
+  },
+  "required": [
+    "task_id",
+    "skill_invoked",
+    "runtime_called",
+    "ready_to_plan",
+    "autonomy",
+    "exploration",
+    "execution",
+    "verification",
+    "user_action",
+    "implementation_started",
+    "diagnostic_command_ran",
+    "summary"
+  ]
+}

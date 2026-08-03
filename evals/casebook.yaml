@@ -1,0 +1,126 @@
+schema: trufagent.eval-suite.v1
+name: casebook-v1
+cases:
+  - id: C01
+    task: Agregar un badge temporal de ausencia en Schedule, en semana y mes, visible solo para admins, con tooltip y fechas fijas.
+    expected:
+      mode: execution-driven
+      exploration: low
+      execution: low
+      verification: low
+      autonomy: proceed
+      evidence: [all-surfaces-verified]
+      ready: true
+  - id: C02
+    task: Diagnosticar por qué las respuestas desaparecen al navegar y el usuario no puede avanzar; el guardado falla silenciosamente sin error.
+    expected:
+      mode: discovery-driven
+      exploration: high
+      execution: medium
+      verification: high
+      autonomy: announce
+      skills: [systematic-debugging]
+      evidence: [persistence-regression]
+      ready: true
+  - id: C03
+    task: Permitir que electricistas y aprendices naveguen stages completados de su propio field record en modo solo lectura, definiendo la interacción pendiente.
+    expected:
+      mode: mixed
+      exploration: medium
+      execution: medium
+      verification: high
+      autonomy: announce
+      evidence: [permission-matrix, state-matrix-tests]
+      ready: true
+  - id: C04
+    task: Decidir cómo un job genérico reutiliza un template bucket sin cambiar el tipo real y auditar todos los consumidores.
+    expected:
+      mode: mixed
+      exploration: high
+      execution: medium
+      verification: high
+      autonomy: proceed
+      skills: [brainstorming]
+      evidence: [consumer-impact-search]
+      ready: true
+  - id: C05
+    task: Ejecutar comandos de diagnóstico de conectividad y variables de entorno sin filtrar la contraseña, en una shell fish.
+    expected:
+      mode: discovery-driven
+      exploration: medium
+      execution: low
+      verification: critical
+      autonomy: confirm
+      evidence: [secret-safe-diagnostics]
+      ready: true
+  - id: C06
+    task: Corregir el AttributionControl de MapLibre porque la librería reabre ese control localizado durante carga y resize.
+    expected:
+      mode: mixed
+      exploration: medium
+      execution: low
+      verification: medium
+      autonomy: proceed
+      evidence: [reproduction-and-root-cause]
+      ready: true
+  - id: C07
+    task: Investigar por qué attachments no son clickeables en Jobs y Archive; el mismo síntoma aparece en ambas superficies.
+    expected:
+      mode: discovery-driven
+      exploration: high
+      execution: medium
+      verification: high
+      autonomy: proceed
+      skills: [systematic-debugging]
+      evidence: [all-surfaces-verified]
+      ready: true
+  - id: C08
+    task: Rediseñar el PDF de handover según el mockup aprobado para tres tipos de job, pero todavía no se proporcionó el Artifact.
+    expected:
+      mode: discovery-driven
+      exploration: high
+      execution: high
+      verification: high
+      autonomy: block
+      evidence: [rendered-visual-comparison, obtain-approved-artifact]
+      ready: false
+  - id: C09
+    task: Evaluar si construir un cache/proxy para attachments externos de GreenDeal, cuya API es read-only, porque se sospecha que expiran.
+    expected:
+      mode: discovery-driven
+      exploration: high
+      execution: none
+      verification: medium
+      autonomy: proceed
+      evidence: [hypothesis-validation, external-constraint-validated]
+      ready: true
+  - id: C10
+    task: Implementar el diseño aprobado del Artifact para la bottom navigation móvil; el enlace no está disponible.
+    expected:
+      mode: execution-driven
+      exploration: high
+      execution: medium
+      verification: high
+      autonomy: block
+      evidence: [obtain-approved-artifact, rendered-visual-comparison]
+      ready: false
+  - id: C11
+    task: Ejecutar el plan aprobado de 12 pasos para Post-Install y verificarlo en preview de integración.
+    expected:
+      mode: execution-driven
+      exploration: medium
+      execution: high
+      verification: high
+      autonomy: proceed
+      evidence: [plan-completion]
+      ready: true
+  - id: C12
+    task: Ejecutar el plan aprobado para Livestage con progreso de stages, mapa y animación visual.
+    expected:
+      mode: execution-driven
+      exploration: low
+      execution: high
+      verification: high
+      autonomy: proceed
+      evidence: [plan-completion, state-matrix-tests, rendered-visual-comparison]
+      ready: true

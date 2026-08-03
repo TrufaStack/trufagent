@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trufagent"
+  short_description: "Size and prepare work with governed context"
+  default_prompt: "Use $trufagent to prepare this task with the appropriate effort and context."

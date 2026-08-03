@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "phase": {
+      "type": "string",
+      "enum": ["coordinator", "exploration"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "warning"]
+    },
+    "summary": {"type": "string"},
+    "next_actions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "worktree_changed": {"type": "boolean"},
+    "root_cause_hint": {
+      "type": ["string", "null"]
+    },
+    "safe_retry": {
+      "type": ["string", "null"]
+    },
+    "stop_condition": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": [
+    "phase",
+    "status",
+    "summary",
+    "next_actions",
+    "artifacts",
+    "evidence",
+    "worktree_changed",
+    "root_cause_hint",
+    "safe_retry",
+    "stop_condition"
+  ]
+}

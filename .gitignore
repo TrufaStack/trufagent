@@ -3,5 +3,8 @@
 __pycache__/
 *.pyc
 .env
+.venv/
+.coverage
 node_modules/
 .superpowers/
+graphify-out/

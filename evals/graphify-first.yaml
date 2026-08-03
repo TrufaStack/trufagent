@@ -1,0 +1,73 @@
+schema: trufagent.graphify-first-eval.v1
+cases:
+  - id: GF01
+    expected_disposition: model-free
+    expected_graph_queries: 1
+    signals:
+      kind: small-change
+      solution_known: true
+      localized: true
+    question: Where are project model overrides loaded and resolved during delegation compilation?
+    required_symbols:
+      - load_model_overrides
+      - compile_delegation_protocol
+  - id: GF02
+    expected_disposition: model-free
+    expected_graph_queries: 1
+    signals:
+      kind: small-change
+      solution_known: true
+      localized: true
+    question: Which code fingerprints the worktree and enforces the read-only shadow boundary?
+    required_symbols:
+      - fingerprint_worktree
+      - ShadowPhaseAdapter
+  - id: GF03
+    expected_disposition: model-free
+    expected_graph_queries: 1
+    signals:
+      kind: small-change
+      solution_known: true
+      localized: true
+    question: Where are memory review decisions applied and indexed?
+    required_symbols:
+      - MemoryReviewService
+      - SqliteMemoryIndex
+  - id: GF04
+    expected_disposition: shadow-required
+    expected_graph_queries: 0
+    signals:
+      kind: architecture
+      open_decisions: true
+    question: Which architecture should coordinate external providers?
+    required_symbols:
+      - compile_delegation_protocol
+  - id: GF05
+    expected_disposition: shadow-required
+    expected_graph_queries: 0
+    signals:
+      kind: bug
+      cause_known: false
+      shared_symptom: true
+    question: Why are two visually identical failures occurring?
+    required_symbols:
+      - ShadowPhaseAdapter
+  - id: GF06
+    expected_disposition: shadow-required
+    expected_graph_queries: 0
+    signals:
+      kind: research
+      external_constraint: true
+      hypothesis_may_negate_work: true
+    question: Does the external provider invalidate the proposed implementation?
+    required_symbols:
+      - GraphifyAdapter
+  - id: GF07
+    expected_disposition: shadow-required
+    expected_graph_queries: 0
+    signals:
+      kind: small-change
+      solution_known: true
+      localized: true
+    question: Make a known one-line change without declared structural targets.
+    required_symbols: []

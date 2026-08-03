@@ -1,0 +1,4 @@
+interface:
+  display_name: "End Trufagent Session"
+  short_description: "Close work with a safe compact handoff"
+  default_prompt: "Use $end-session to close this work session with a compact handoff."
