@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from trufagent.domain.attempt import AttemptEvent, AttemptStatus
+from trufagent.experimental.attempt import AttemptEvent, AttemptStatus
 
 
 class AttemptLedgerError(RuntimeError):

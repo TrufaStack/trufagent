@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from trufagent.application.promotion import ContextProjectionPolicy
-from trufagent.infrastructure.context_projection import (
+from trufagent.experimental.context_projection import (
     ContextProjectionError,
     create_context_projection,
 )

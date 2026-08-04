@@ -5,17 +5,6 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from trufagent.application.context_builder import ContextBuilder, ContextRequest
-from trufagent.application.coordinator_gate import (
-    CoordinatorGateResult,
-    apply_coordinator_gate,
-    evaluate_host_coordinator,
-)
-from trufagent.application.exploration_gate import (
-    ExplorationGateResult,
-    apply_exploration_gate,
-    evaluate_graphify_applicability,
-    evaluate_graphify_first,
-)
 from trufagent.application.model_routing import route_models
 from trufagent.application.skill_catalog import (
     InMemorySkillCatalog,
@@ -32,6 +21,17 @@ from trufagent.domain.task import (
     TaskKind,
     TaskSignals,
     TaskStrategy,
+)
+from trufagent.experimental.coordinator_gate import (
+    CoordinatorGateResult,
+    apply_coordinator_gate,
+    evaluate_host_coordinator,
+)
+from trufagent.experimental.exploration_gate import (
+    ExplorationGateResult,
+    apply_exploration_gate,
+    evaluate_graphify_applicability,
+    evaluate_graphify_first,
 )
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
 

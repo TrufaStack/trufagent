@@ -1,8 +1,15 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-from trufagent.domain.attempt import FailureKind
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelTier
+from trufagent.experimental.attempt import FailureKind
+from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.codex_shadow_runner import (
+    ShadowResponseCode,
+    ShadowResponseError,
+    ShadowTimeoutError,
+)
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationPhase,
     DelegationStep,
@@ -10,19 +17,12 @@ from trufagent.domain.delegation import (
     PhaseHandoff,
     UsageRecord,
 )
-from trufagent.domain.task import Harness, ModelTier
-from trufagent.infrastructure.attempt_fs import JsonlAttemptRepository
-from trufagent.infrastructure.codex_shadow_runner import (
-    ShadowResponseCode,
-    ShadowResponseError,
-    ShadowTimeoutError,
-)
-from trufagent.infrastructure.shadow_phase_adapter import (
+from trufagent.experimental.shadow_phase_adapter import (
     ShadowPhaseAdapter,
     ShadowProgress,
     ShadowResult,
 )
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 
 
 class FakeShadowRunner:

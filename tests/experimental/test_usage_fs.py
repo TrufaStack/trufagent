@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.domain.delegation import DelegationPhase, UsageRecord
+from trufagent.experimental.delegation_domain import DelegationPhase, UsageRecord
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 from trufagent.infrastructure.model_profiles import Harness
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
 
 
 def _record(invocation_id: str) -> UsageRecord:

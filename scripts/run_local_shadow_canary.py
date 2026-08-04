@@ -11,16 +11,16 @@ from pathlib import Path
 from unittest.mock import patch
 
 from trufagent.cli import main as cli_main
-from trufagent.domain.attempt import AttemptStatus
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelTier
+from trufagent.experimental.attempt import AttemptStatus
+from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.delegation_domain import (
     HandoffStatus,
     PhaseHandoff,
     UsageRecord,
 )
-from trufagent.domain.task import Harness, ModelTier
-from trufagent.infrastructure.attempt_fs import JsonlAttemptRepository
-from trufagent.infrastructure.shadow_phase_adapter import ShadowResult
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
+from trufagent.experimental.shadow_phase_adapter import ShadowResult
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 
 TASK = "Diagnose why saved answers disappear and no error is shown."
 SYMBOL = "resolveChecklistJobType"

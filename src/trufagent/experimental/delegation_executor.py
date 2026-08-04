@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from trufagent.application.errors import SafeAdapterError
-from trufagent.domain.delegation import (
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationProtocol,
     DelegationRunReport,

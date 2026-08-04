@@ -5,8 +5,8 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict
 
 from trufagent.domain.cartography import GraphQueryResult, GraphState
-from trufagent.domain.delegation import DelegationPhase, HandoffStatus, PhaseHandoff
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
+from trufagent.experimental.delegation_domain import DelegationPhase, HandoffStatus, PhaseHandoff
 
 
 class ExplorationDisposition(StrEnum):

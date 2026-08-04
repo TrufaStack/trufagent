@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def test_local_shadow_canary_passes_every_deterministic_judge() -> None:
-    root = Path(__file__).parents[1]
+    root = Path(__file__).parents[2]
     process = subprocess.run(
         [sys.executable, str(root / "scripts" / "run_local_shadow_canary.py")],
         cwd=root,

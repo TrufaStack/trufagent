@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 from trufagent.cli import main
-from trufagent.domain.delegation import DelegationPhase, UsageRecord
 from trufagent.domain.task import Harness
+from trufagent.experimental.delegation_domain import DelegationPhase, UsageRecord
 
 
 def test_cli_compiles_protocol_without_invoking_models(tmp_path: Path, capsys) -> None:

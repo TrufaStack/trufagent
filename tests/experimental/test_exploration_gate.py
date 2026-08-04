@@ -1,15 +1,15 @@
-from trufagent.application.exploration_gate import (
-    ExplorationDisposition,
-    apply_exploration_gate,
-    evaluate_graphify_applicability,
-    evaluate_graphify_first,
-)
 from trufagent.domain.cartography import (
     GraphQueryResult,
     GraphReference,
     GraphState,
 )
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
+from trufagent.experimental.exploration_gate import (
+    ExplorationDisposition,
+    apply_exploration_gate,
+    evaluate_graphify_applicability,
+    evaluate_graphify_first,
+)
 
 
 def _graph(*, truncated: bool = False) -> GraphQueryResult:

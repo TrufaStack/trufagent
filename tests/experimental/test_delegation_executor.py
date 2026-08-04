@@ -2,16 +2,16 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.application.delegation import compile_delegation_protocol
-from trufagent.application.delegation_executor import execute_dry_run
 from trufagent.application.errors import SafeAdapterError
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelRouting, ModelTier
+from trufagent.experimental.delegation import compile_delegation_protocol
+from trufagent.experimental.delegation_domain import (
     DelegationPhase,
     HandoffStatus,
     PhaseHandoff,
 )
-from trufagent.domain.task import Harness, ModelRouting, ModelTier
-from trufagent.infrastructure.fake_phase_adapter import ScriptedPhaseAdapter
+from trufagent.experimental.delegation_executor import execute_dry_run
+from trufagent.experimental.fake_phase_adapter import ScriptedPhaseAdapter
 
 
 def _protocol(tmp_path: Path):

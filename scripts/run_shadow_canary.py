@@ -5,14 +5,6 @@ import json
 import time
 from pathlib import Path
 
-from trufagent.application.delegation import compile_delegation_protocol
-from trufagent.application.delegation_executor import execute_dry_run
-from trufagent.application.exploration_gate import (
-    ExplorationDisposition,
-    evaluate_graphify_applicability,
-    evaluate_graphify_first,
-)
-from trufagent.domain.delegation import HandoffStatus
 from trufagent.domain.task import (
     Harness,
     ModelRouting,
@@ -20,10 +12,18 @@ from trufagent.domain.task import (
     TaskKind,
     TaskSignals,
 )
-from trufagent.infrastructure.codex_shadow_runner import CodexShadowRunner
+from trufagent.experimental.codex_shadow_runner import CodexShadowRunner
+from trufagent.experimental.delegation import compile_delegation_protocol
+from trufagent.experimental.delegation_domain import HandoffStatus
+from trufagent.experimental.delegation_executor import execute_dry_run
+from trufagent.experimental.exploration_gate import (
+    ExplorationDisposition,
+    evaluate_graphify_applicability,
+    evaluate_graphify_first,
+)
+from trufagent.experimental.shadow_phase_adapter import ShadowPhaseAdapter
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter
-from trufagent.infrastructure.shadow_phase_adapter import ShadowPhaseAdapter
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
 
 
 def main() -> int:

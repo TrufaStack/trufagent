@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from trufagent.domain.delegation import UsageLedger, UsageRecord
+from trufagent.experimental.delegation_domain import UsageLedger, UsageRecord
 
 
 class UsageLedgerError(RuntimeError):

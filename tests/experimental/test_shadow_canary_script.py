@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_shadow_canary_script_disables_mutating_phases() -> None:
-    script = (Path(__file__).parents[1] / "scripts" / "run_shadow_canary.py").read_text()
+    script = (Path(__file__).parents[2] / "scripts" / "run_shadow_canary.py").read_text()
 
     assert "coordinator=ModelTier.NONE" in script
     assert "exploration=ModelTier.BALANCED" in script

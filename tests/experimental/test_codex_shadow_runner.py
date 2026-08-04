@@ -6,20 +6,20 @@ from pathlib import Path
 import pytest
 
 from trufagent.application.promotion import ContextProjectionPolicy
-from trufagent.domain.delegation import (
-    ActionScope,
-    DelegationPhase,
-    DelegationStep,
-    HandoffStatus,
-)
 from trufagent.domain.task import ModelTier
-from trufagent.infrastructure.codex_shadow_runner import (
+from trufagent.experimental.codex_shadow_runner import (
     CodexShadowRunner,
     ShadowProcessError,
     ShadowResponseCode,
     ShadowResponseError,
     ShadowTimeoutError,
     shadow_network_is_default_deny,
+)
+from trufagent.experimental.delegation_domain import (
+    ActionScope,
+    DelegationPhase,
+    DelegationStep,
+    HandoffStatus,
 )
 
 

@@ -54,13 +54,6 @@ from trufagent.infrastructure.memory_markdown import (
 )
 from trufagent.infrastructure.memory_v2_fs import MarkdownMemoryRepositoryV2
 from trufagent.infrastructure.model_profiles import Harness, resolve_project_model
-from trufagent.infrastructure.pilot_fs import (
-    PilotLedgerError,
-    PilotTaskKind,
-    PilotTaskStatus,
-    begin_pilot_task,
-    finish_pilot_task,
-)
 from trufagent.infrastructure.project_init import ProjectInitializationError, initialize_project
 from trufagent.infrastructure.session_fs import FileSessionRepository
 from trufagent.infrastructure.skill_audit import audit_skill_catalog
@@ -437,7 +430,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     promotion_pilot_begin.add_argument("project_root", type=Path)
     promotion_pilot_begin.add_argument("--task-id", required=True)
-    promotion_pilot_begin.add_argument("--kind", type=PilotTaskKind, required=True)
+    promotion_pilot_begin.add_argument(
+        "--kind",
+        choices=["small-change", "ambiguous-bug", "feature", "architecture", "memory"],
+        required=True,
+    )
     promotion_pilot_finish = promotion_subcommands.add_parser(
         "pilot-finish", help="Finish one pilot task and verify the source boundary"
     )
@@ -445,8 +442,7 @@ def _build_parser() -> argparse.ArgumentParser:
     promotion_pilot_finish.add_argument("--task-id", required=True)
     promotion_pilot_finish.add_argument(
         "--status",
-        type=PilotTaskStatus,
-        choices=(PilotTaskStatus.PASSED, PilotTaskStatus.FAILED),
+        choices=("passed", "failed"),
         required=True,
     )
 
@@ -680,20 +676,23 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "delegation":
-        from trufagent.application.delegation import (
+        from trufagent.experimental.attempt import AttemptStatus
+        from trufagent.experimental.attempt_fs import (
+            AttemptLedgerError,
+            JsonlAttemptRepository,
+        )
+        from trufagent.experimental.codex_shadow_runner import (
+            CodexShadowRunner as NativeCodexShadowRunner,
+        )
+        from trufagent.experimental.codex_shadow_runner import (
+            ShadowProviderError,
+        )
+        from trufagent.experimental.delegation import (
             CompileDelegationRequest,
             compile_delegation_protocol,
             compile_request,
         )
-        from trufagent.application.delegation_executor import execute_dry_run
-        from trufagent.application.exploration_gate import (
-            ExplorationDisposition,
-            evaluate_graphify_applicability,
-            evaluate_graphify_first,
-        )
-        from trufagent.application.retry_gate import evaluate_supervised_retry
-        from trufagent.domain.attempt import AttemptStatus
-        from trufagent.domain.delegation import (
+        from trufagent.experimental.delegation_domain import (
             ActionScope,
             DelegationPhase,
             DelegationProtocol,
@@ -701,21 +700,18 @@ def main(argv: list[str] | None = None) -> int:
             PhaseHandoff,
             UsageRecord,
         )
+        from trufagent.experimental.delegation_executor import execute_dry_run
+        from trufagent.experimental.exploration_gate import (
+            ExplorationDisposition,
+            evaluate_graphify_applicability,
+            evaluate_graphify_first,
+        )
+        from trufagent.experimental.fake_phase_adapter import ScriptedPhaseAdapter
+        from trufagent.experimental.retry_gate import evaluate_supervised_retry
+        from trufagent.experimental.shadow_phase_adapter import ShadowPhaseAdapter
         from trufagent.experimental.task_preview import FileTaskPreviewRepository
-        from trufagent.infrastructure.attempt_fs import (
-            AttemptLedgerError,
-            JsonlAttemptRepository,
-        )
-        from trufagent.infrastructure.codex_shadow_runner import (
-            CodexShadowRunner as NativeCodexShadowRunner,
-        )
-        from trufagent.infrastructure.codex_shadow_runner import (
-            ShadowProviderError,
-        )
-        from trufagent.infrastructure.fake_phase_adapter import ScriptedPhaseAdapter
+        from trufagent.experimental.usage_fs import JsonlUsageRepository, UsageLedgerError
         from trufagent.infrastructure.promotion_fs import load_promotion_policy
-        from trufagent.infrastructure.shadow_phase_adapter import ShadowPhaseAdapter
-        from trufagent.infrastructure.usage_fs import JsonlUsageRepository, UsageLedgerError
 
         try:
             if args.delegation_command == "compile":
@@ -1321,6 +1317,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "promotion":
         from trufagent.application.promotion import evaluate_promotion_readiness
+        from trufagent.infrastructure.pilot_fs import (
+            PilotLedgerError,
+            PilotTaskKind,
+            PilotTaskStatus,
+            begin_pilot_task,
+            finish_pilot_task,
+        )
         from trufagent.infrastructure.promotion_fs import (
             PromotionPolicyError,
             collect_promotion_facts,
@@ -1356,11 +1359,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(review.model_dump_json(by_alias=True))
                 return 0
             if args.promotion_command == "pilot-begin":
-                record = begin_pilot_task(args.project_root, args.task_id, args.kind)
+                record = begin_pilot_task(
+                    args.project_root, args.task_id, PilotTaskKind(args.kind)
+                )
                 print(record.model_dump_json(by_alias=True))
                 return 0
             if args.promotion_command == "pilot-finish":
-                record = finish_pilot_task(args.project_root, args.task_id, args.status)
+                record = finish_pilot_task(
+                    args.project_root, args.task_id, PilotTaskStatus(args.status)
+                )
                 print(record.model_dump_json(by_alias=True))
                 return int(record.status != PilotTaskStatus.PASSED)
             policy = load_promotion_policy(args.project_root)

@@ -7,8 +7,8 @@ import yaml
 from pydantic import ValidationError
 
 from trufagent.application.promotion import PromotionFacts, PromotionPolicy
-from trufagent.infrastructure.codex_shadow_runner import shadow_network_is_default_deny
-from trufagent.infrastructure.context_projection import (
+from trufagent.experimental.codex_shadow_runner import shadow_network_is_default_deny
+from trufagent.experimental.context_projection import (
     ContextProjectionError,
     create_context_projection,
 )

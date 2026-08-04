@@ -4,8 +4,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
-from trufagent.domain.delegation import DelegationPhase, HandoffStatus, PhaseHandoff
 from trufagent.domain.task import ModelRouting, ModelTier, TaskStrategy
+from trufagent.experimental.delegation_domain import DelegationPhase, HandoffStatus, PhaseHandoff
 
 
 class CoordinatorDisposition(StrEnum):

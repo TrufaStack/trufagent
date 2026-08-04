@@ -6,13 +6,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
-from trufagent.domain.attempt import (
+from trufagent.domain.task import Harness
+from trufagent.experimental.attempt import (
     AttemptEvent,
     AttemptStatus,
     FailureKind,
     ProviderEventType,
 )
-from trufagent.domain.delegation import (
+from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationPhase,
     DelegationStep,
@@ -20,9 +22,7 @@ from trufagent.domain.delegation import (
     PhaseHandoff,
     UsageRecord,
 )
-from trufagent.domain.task import Harness
-from trufagent.infrastructure.attempt_fs import JsonlAttemptRepository
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
 
 

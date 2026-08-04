@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from trufagent.domain.delegation import (
+from trufagent.experimental.delegation_domain import (
     DelegationPhase,
     DelegationStep,
     PhaseHandoff,

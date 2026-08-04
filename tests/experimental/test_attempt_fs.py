@@ -4,12 +4,12 @@ from datetime import UTC, datetime
 import pytest
 
 from trufagent.cli import main
-from trufagent.domain.attempt import AttemptEvent, AttemptStatus, FailureKind
-from trufagent.domain.delegation import DelegationPhase
-from trufagent.infrastructure.attempt_fs import (
+from trufagent.experimental.attempt import AttemptEvent, AttemptStatus, FailureKind
+from trufagent.experimental.attempt_fs import (
     AttemptLedgerError,
     JsonlAttemptRepository,
 )
+from trufagent.experimental.delegation_domain import DelegationPhase
 
 
 def _event(event_id: str, status: AttemptStatus, **updates) -> AttemptEvent:

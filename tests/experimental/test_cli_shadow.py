@@ -5,21 +5,21 @@ from decimal import Decimal
 from pathlib import Path
 
 from trufagent.cli import _shadow_schema_path, main
-from trufagent.domain.attempt import AttemptEvent, AttemptStatus, FailureKind
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelTier, TaskSignals
+from trufagent.experimental.attempt import AttemptEvent, AttemptStatus, FailureKind
+from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.codex_shadow_runner import (
+    ShadowProcessError,
+    ShadowTimeoutError,
+)
+from trufagent.experimental.delegation_domain import (
     DelegationPhase,
     HandoffStatus,
     PhaseHandoff,
     UsageRecord,
 )
-from trufagent.domain.task import Harness, ModelTier, TaskSignals
-from trufagent.infrastructure.attempt_fs import JsonlAttemptRepository
-from trufagent.infrastructure.codex_shadow_runner import (
-    ShadowProcessError,
-    ShadowTimeoutError,
-)
-from trufagent.infrastructure.shadow_phase_adapter import ShadowResult
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository
+from trufagent.experimental.shadow_phase_adapter import ShadowResult
+from trufagent.experimental.usage_fs import JsonlUsageRepository
 
 
 def _signals(tmp_path: Path) -> Path:

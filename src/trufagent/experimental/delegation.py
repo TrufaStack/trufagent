@@ -5,13 +5,13 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelRouting, ModelTier
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationPhase,
     DelegationProtocol,
     DelegationStep,
 )
-from trufagent.domain.task import Harness, ModelRouting, ModelTier
 from trufagent.infrastructure.model_profiles import (
     load_model_overrides,
     resolve_model,

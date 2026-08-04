@@ -3,8 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.application.delegation import compile_delegation_protocol
-from trufagent.domain.delegation import (
+from trufagent.domain.task import ModelRouting, ModelTier
+from trufagent.experimental.delegation import compile_delegation_protocol
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationPhase,
     HandoffStatus,
@@ -12,7 +13,6 @@ from trufagent.domain.delegation import (
     UsageLedger,
     UsageRecord,
 )
-from trufagent.domain.task import ModelRouting, ModelTier
 from trufagent.infrastructure.model_profiles import Harness
 
 

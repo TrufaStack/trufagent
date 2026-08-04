@@ -1,6 +1,6 @@
 import pytest
 
-from trufagent.application.retry_gate import (
+from trufagent.experimental.retry_gate import (
     FailureKind,
     evaluate_supervised_retry,
 )

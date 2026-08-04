@@ -1,10 +1,10 @@
-from trufagent.application.coordinator_gate import (
+from trufagent.application.task_classifier import classify_task
+from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
+from trufagent.experimental.coordinator_gate import (
     CoordinatorDisposition,
     apply_coordinator_gate,
     evaluate_host_coordinator,
 )
-from trufagent.application.task_classifier import classify_task
-from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
 
 
 def test_embedded_host_owns_coordinator_without_second_model() -> None:

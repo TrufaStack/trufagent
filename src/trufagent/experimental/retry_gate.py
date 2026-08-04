@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.domain.attempt import FailureKind
-from trufagent.domain.delegation import HandoffStatus
+from trufagent.experimental.attempt import FailureKind
+from trufagent.experimental.delegation_domain import HandoffStatus
 
 
 class RetryGateResult(BaseModel):

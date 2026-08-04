@@ -16,17 +16,17 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from trufagent.application.errors import SafeAdapterError
 from trufagent.application.promotion import ContextProjectionPolicy
-from trufagent.domain.attempt import ProviderEventType
-from trufagent.domain.delegation import (
+from trufagent.domain.task import Harness, ModelTier
+from trufagent.experimental.attempt import ProviderEventType
+from trufagent.experimental.context_projection import create_context_projection
+from trufagent.experimental.delegation_domain import (
     ActionScope,
     DelegationStep,
     PhaseHandoff,
     UsageRecord,
 )
-from trufagent.domain.task import Harness, ModelTier
-from trufagent.infrastructure.context_projection import create_context_projection
+from trufagent.experimental.shadow_phase_adapter import ShadowProgress, ShadowResult
 from trufagent.infrastructure.model_profiles import resolve_reasoning_effort
-from trufagent.infrastructure.shadow_phase_adapter import ShadowProgress, ShadowResult
 
 
 class ShadowProviderError(SafeAdapterError):

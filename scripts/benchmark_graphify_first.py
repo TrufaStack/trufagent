@@ -7,12 +7,12 @@ from pathlib import Path
 
 import yaml
 
-from trufagent.application.exploration_gate import (
+from trufagent.domain.task import TaskSignals
+from trufagent.experimental.exploration_gate import (
     ExplorationDisposition,
     evaluate_graphify_applicability,
     evaluate_graphify_first,
 )
-from trufagent.domain.task import TaskSignals
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter
 
 
