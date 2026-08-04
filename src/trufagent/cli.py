@@ -17,9 +17,7 @@ from trufagent.application.close_v2 import CloseV2Service
 from trufagent.application.evaluation import evaluate_suite, load_evaluation_suite
 from trufagent.application.memory_review import MemoryReviewService
 from trufagent.application.memory_v2 import MemoryV2Service
-from trufagent.application.plan_task import PlanTaskRequest, PlanTaskService
-from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
-from trufagent.application.prepare_v2 import project_prepare_v2
+from trufagent.application.prepare_v2 import PrepareV2Service
 from trufagent.application.sessions import (
     EndSessionRequest,
     EndSessionService,
@@ -524,6 +522,9 @@ def _prepare_from_files(
     catalog_override: Path | None,
     harness: Harness | None = None,
 ):
+    from trufagent.application.plan_task import PlanTaskService
+    from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
+
     project = _project(project_root, project_override)
     intake = TaskIntake.model_validate_json(intake_path.read_text(encoding="utf-8"))
     repository = MarkdownMemoryRepository(
@@ -546,6 +547,33 @@ def _prepare_from_files(
     )
 
 
+def _prepare_v2_from_files(
+    intake_path: Path,
+    project_root: Path,
+    *,
+    project_override: str | None,
+    catalog_override: Path | None,
+    harness: Harness | None = None,
+):
+    project = _project(project_root, project_override)
+    intake = TaskIntake.model_validate_json(intake_path.read_text(encoding="utf-8"))
+    repository = MarkdownMemoryRepository(
+        project_root,
+        project=project,
+        user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
+    ).initialize()
+    return PrepareV2Service(
+        repository,
+        cartography=GraphifyAdapter(),
+        skills=_runtime_catalog(project_root, catalog_override),
+    ).prepare(
+        intake,
+        project=project,
+        project_root=project_root,
+        harness=harness.value if harness else None,
+    )
+
+
 def _shadow_schema_path() -> Path:
     path = Path(__file__).resolve().parent / "schemas" / "handoff-schema.json"
     if not path.is_file():
@@ -562,14 +590,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "prepare":
         try:
-            prepared = _prepare_from_files(
+            result = _prepare_v2_from_files(
                 args.intake,
                 args.project_root,
                 project_override=args.project,
                 catalog_override=args.catalog,
                 harness=Harness(args.harness) if args.harness else None,
             )
-            result = project_prepare_v2(prepared, harness=args.harness)
         except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
@@ -1156,6 +1183,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "plan" and args.plan_command == "task":
+        from trufagent.application.plan_task import PlanTaskRequest, PlanTaskService
+
         try:
             request = PlanTaskRequest.model_validate_json(args.request.read_text(encoding="utf-8"))
             runtime_catalog = _runtime_catalog(request.project_root, args.catalog)
@@ -1535,6 +1564,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "task":
+        from trufagent.application.plan_task import PlanTaskService
+        from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
+
         try:
             root = args.root.resolve()
             project = _project(root, args.project)

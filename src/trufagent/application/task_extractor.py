@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.application.task_classifier import classify_task
 from trufagent.domain.task import TaskKind, TaskSignals, TaskStrategy
 
 
@@ -50,6 +49,16 @@ class TaskExtractionResult(BaseModel):
     questions: list[IntakeQuestion] = Field(default_factory=list)
     ready_to_plan: bool
     strategy: TaskStrategy
+
+
+class TaskExtractionV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    task: str
+    signals: TaskSignals
+    evidence: list[SignalEvidence] = Field(default_factory=list)
+    questions: list[IntakeQuestion] = Field(default_factory=list)
+    ready_to_plan: bool
 
 
 def _normalized(text: str) -> str:
@@ -119,7 +128,7 @@ def _infer_kind(text: str) -> tuple[TaskKind, float, str]:
     return TaskKind.SMALL_CHANGE, 0.55, "fallback assumes the smallest reversible scope"
 
 
-def extract_task_signals(intake: TaskIntake) -> TaskExtractionResult:
+def extract_task_signals_v2(intake: TaskIntake) -> TaskExtractionV2:
     text = _normalized(intake.task)
     kind, kind_confidence, kind_reason = _infer_kind(text)
     values: dict[str, Any] = {"kind": kind}
@@ -327,11 +336,20 @@ def extract_task_signals(intake: TaskIntake) -> TaskExtractionResult:
                 reason="The approved design outranks summaries and cannot be improvised.",
             )
         )
-    return TaskExtractionResult(
+    return TaskExtractionV2(
         task=intake.task,
         signals=signals,
         evidence=evidence,
         questions=questions,
         ready_to_plan=not questions,
-        strategy=classify_task(signals),
+    )
+
+
+def extract_task_signals(intake: TaskIntake) -> TaskExtractionResult:
+    from trufagent.application.task_classifier import classify_task
+
+    extraction = extract_task_signals_v2(intake)
+    return TaskExtractionResult(
+        **extraction.model_dump(),
+        strategy=classify_task(extraction.signals),
     )
