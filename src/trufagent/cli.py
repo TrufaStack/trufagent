@@ -630,6 +630,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.request.read_text(encoding="utf-8")
             )
             result = CloseV2Service(
+                MarkdownMemoryRepositoryV2(
+                    args.project_root, project=project
+                ).initialize(),
                 repository,
                 SqliteMemoryIndex(
                     Path(args.project_root) / ".trufagent" / "memory-index.sqlite3"

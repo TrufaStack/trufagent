@@ -15,6 +15,7 @@ from trufagent.domain.memory import MemoryKind
 from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
 from trufagent.infrastructure.memory_index import SqliteMemoryIndex
+from trufagent.infrastructure.memory_v2_fs import MarkdownMemoryRepositoryV2
 
 NOW = datetime(2026, 8, 3, 12, 0, tzinfo=UTC)
 
@@ -62,6 +63,7 @@ def test_close_rejects_unmerged_commit_before_writing(tmp_path: Path) -> None:
     memory = MarkdownMemoryRepository(tmp_path, project="demo").initialize()
     index_path = tmp_path / ".trufagent/memory-index.sqlite3"
     service = CloseV2Service(
+        MarkdownMemoryRepositoryV2(tmp_path, project="demo").initialize(),
         memory,
         SqliteMemoryIndex(index_path),
         Merge(False),
@@ -80,7 +82,9 @@ def test_close_rejects_unmerged_commit_before_writing(tmp_path: Path) -> None:
 def test_close_proposes_compatible_memory_and_rebuilds_index(tmp_path: Path) -> None:
     memory = MarkdownMemoryRepository(tmp_path, project="demo").initialize()
     index = SqliteMemoryIndex(tmp_path / ".trufagent/memory-index.sqlite3")
+    v2_memory = MarkdownMemoryRepositoryV2(tmp_path, project="demo").initialize()
     result = CloseV2Service(
+        v2_memory,
         memory,
         index,
         Merge(True),
@@ -89,14 +93,14 @@ def test_close_proposes_compatible_memory_and_rebuilds_index(tmp_path: Path) -> 
         clock=lambda: NOW,
     ).close(tmp_path, _request())
 
-    proposed = memory.read(result.proposed_memory_ids[0])
+    proposed = v2_memory.read(result.proposed_memory_ids[0])
     assert result.schema_ == "trufagent.close.v2"
     assert result.indexed_memories == 1
     assert result.graph_update_required is True
-    assert proposed.envelope.schema_ == "trufagent.memory.v1"
+    assert proposed.envelope.schema_ == "trufagent.memory.v2"
     assert proposed.envelope.status.value == "proposed"
     assert proposed.envelope.governs_behavior is False
-    assert proposed.envelope.validity.derived_from_commit == "abcdef123456"
+    assert proposed.envelope.source_commit == "abcdef123456"
     assert index.search("reviewable", project="demo")
 
 
@@ -104,6 +108,7 @@ def test_close_checks_cartography_before_writing(tmp_path: Path) -> None:
     memory = MarkdownMemoryRepository(tmp_path, project="demo").initialize()
     index_path = tmp_path / ".trufagent/memory-index.sqlite3"
     service = CloseV2Service(
+        MarkdownMemoryRepositoryV2(tmp_path, project="demo").initialize(),
         memory,
         SqliteMemoryIndex(index_path),
         Merge(True),
