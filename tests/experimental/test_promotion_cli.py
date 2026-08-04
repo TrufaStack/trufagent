@@ -1,6 +1,6 @@
 import json
 
-from trufagent.cli import main
+from trufagent.experimental.cli import main
 
 
 def test_promotion_cli_initializes_policy_and_reports_honest_blockers(

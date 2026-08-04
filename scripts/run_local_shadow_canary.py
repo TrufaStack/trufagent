@@ -10,10 +10,10 @@ from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
-from trufagent.cli import main as cli_main
 from trufagent.domain.task import Harness, ModelTier
 from trufagent.experimental.attempt import AttemptStatus
 from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.cli import main as cli_main
 from trufagent.experimental.delegation_domain import (
     HandoffStatus,
     PhaseHandoff,

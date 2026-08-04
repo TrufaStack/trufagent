@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.application.promotion import ContextProjectionPolicy
 from trufagent.domain.task import ModelTier
 from trufagent.experimental.codex_shadow_runner import (
     CodexShadowRunner,
@@ -21,6 +20,7 @@ from trufagent.experimental.delegation_domain import (
     DelegationStep,
     HandoffStatus,
 )
+from trufagent.experimental.promotion import ContextProjectionPolicy
 
 
 def _step() -> DelegationStep:

@@ -15,7 +15,6 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from trufagent.application.errors import SafeAdapterError
-from trufagent.application.promotion import ContextProjectionPolicy
 from trufagent.domain.task import Harness, ModelTier
 from trufagent.experimental.attempt import ProviderEventType
 from trufagent.experimental.context_projection import create_context_projection
@@ -25,6 +24,7 @@ from trufagent.experimental.delegation_domain import (
     PhaseHandoff,
     UsageRecord,
 )
+from trufagent.experimental.promotion import ContextProjectionPolicy
 from trufagent.experimental.shadow_phase_adapter import ShadowProgress, ShadowResult
 from trufagent.infrastructure.model_profiles import resolve_reasoning_effort
 

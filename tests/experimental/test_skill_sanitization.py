@@ -7,7 +7,7 @@ from trufagent.application.skill_sanitization import (
     apply_skill_sanitization,
     plan_skill_sanitization,
 )
-from trufagent.cli import main
+from trufagent.experimental.cli import main
 from trufagent.infrastructure.skill_audit import audit_skill_catalog
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
 from trufagent.infrastructure.skill_discovery import SkillDiscovery

@@ -4,10 +4,11 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from trufagent.cli import _shadow_schema_path, main
+from trufagent.cli import _shadow_schema_path
 from trufagent.domain.task import Harness, ModelTier, TaskSignals
 from trufagent.experimental.attempt import AttemptEvent, AttemptStatus, FailureKind
 from trufagent.experimental.attempt_fs import JsonlAttemptRepository
+from trufagent.experimental.cli import main
 from trufagent.experimental.codex_shadow_runner import (
     ShadowProcessError,
     ShadowTimeoutError,

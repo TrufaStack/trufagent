@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from trufagent.cli import main
 from trufagent.domain.task import Harness
+from trufagent.experimental.cli import main
 from trufagent.experimental.delegation_domain import DelegationPhase, UsageRecord
 
 

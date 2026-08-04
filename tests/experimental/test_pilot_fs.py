@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.infrastructure.pilot_fs import (
+from trufagent.experimental.pilot_fs import (
     PilotLedgerError,
     PilotTaskKind,
     PilotTaskStatus,
@@ -11,8 +11,8 @@ from trufagent.infrastructure.pilot_fs import (
     finish_pilot_task,
     load_pilot_ledger,
 )
-from trufagent.infrastructure.promotion_fs import initialize_pilot_policy, load_promotion_policy
-from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
+from trufagent.experimental.promotion_fs import initialize_pilot_policy, load_promotion_policy
+from trufagent.experimental.promotion_workspace import prepare_promotion_workspace
 
 
 def _ready_source(tmp_path: Path) -> Path:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from trufagent.cli import main
+from trufagent.experimental.cli import main
 from trufagent.infrastructure.skill_audit import audit_skill_catalog
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
 from trufagent.infrastructure.skill_discovery import SkillDiscovery

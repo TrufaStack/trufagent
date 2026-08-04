@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.infrastructure.promotion_workspace import operation_gate_is_enforced
+from trufagent.experimental.promotion_workspace import operation_gate_is_enforced
 from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
 
 

@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from trufagent.infrastructure.promotion_fs import (
+from trufagent.experimental.promotion_fs import (
     collect_promotion_facts,
     initialize_pilot_policy,
     load_promotion_policy,
 )
-from trufagent.infrastructure.promotion_workspace import (
+from trufagent.experimental.promotion_workspace import (
     load_promotion_workspace,
     operation_gate_is_enforced,
     prepare_promotion_workspace,

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.application.promotion import ContextProjectionPolicy
+from trufagent.experimental.promotion import ContextProjectionPolicy
 from trufagent.infrastructure.memory_markdown import find_secret_shapes
 
 

@@ -25,6 +25,7 @@ dev = [
 
 [project.scripts]
 trufagent = "trufagent.cli:main"
+trufagent-experimental = "trufagent.experimental.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/trufagent"]

@@ -5,7 +5,7 @@ from trufagent.domain.skills import (
     SkillCatalogEntry,
     SkillLocation,
 )
-from trufagent.infrastructure.codex_skill_surface import (
+from trufagent.experimental.codex_skill_surface import (
     apply_managed_skill_surface,
     plan_codex_skill_surface,
 )

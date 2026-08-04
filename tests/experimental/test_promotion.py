@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from trufagent.application.promotion import (
+from trufagent.experimental.promotion import (
     PromotionFacts,
     evaluate_promotion_readiness,
 )
-from trufagent.infrastructure.promotion_fs import (
+from trufagent.experimental.promotion_fs import (
     collect_promotion_facts,
     initialize_pilot_policy,
     load_promotion_policy,

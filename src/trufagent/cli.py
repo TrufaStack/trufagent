@@ -38,10 +38,6 @@ from trufagent.domain.skill_audit import SkillAuditReport
 from trufagent.domain.skill_sanitization import SkillSanitizationManifest
 from trufagent.domain.skill_sources import RemoteSkillRegistry
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
-from trufagent.infrastructure.codex_skill_surface import (
-    apply_managed_skill_surface,
-    plan_codex_skill_surface,
-)
 from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter, GraphifyAdapterError
 from trufagent.infrastructure.memory_combined import CombinedMemoryRepository
@@ -67,8 +63,23 @@ from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
 CodexShadowRunner = None
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="trufagent")
+def _remove_subcommands(
+    action: argparse._SubParsersAction,
+    names: set[str],
+) -> None:
+    for name in names:
+        action.choices.pop(name, None)
+    action._choices_actions[:] = [
+        choice for choice in action._choices_actions if choice.dest not in names
+    ]
+
+
+def _build_parser(
+    *,
+    include_experimental: bool = False,
+    prog: str = "trufagent",
+) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog=prog)
     subcommands = parser.add_subparsers(dest="command", required=True)
 
     schema = subcommands.add_parser("schema", help="Print a canonical JSON Schema")
@@ -467,6 +478,15 @@ def _build_parser() -> argparse.ArgumentParser:
     casebook.add_argument("suite", type=Path)
     casebook.add_argument("--fail-under", type=float, default=0)
 
+    if not include_experimental:
+        _remove_subcommands(
+            subcommands,
+            {"task", "task-continue", "delegation", "promotion"},
+        )
+        _remove_subcommands(
+            skills_subcommands,
+            {"sync", "review", "audit", "sources", "sanitize", "import", "profile"},
+        )
     return parser
 
 
@@ -576,8 +596,16 @@ def _shadow_schema_path() -> Path:
     return path
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = _build_parser().parse_args(argv)
+def main(
+    argv: list[str] | None = None,
+    *,
+    include_experimental: bool = False,
+    prog: str = "trufagent",
+) -> int:
+    args = _build_parser(
+        include_experimental=include_experimental,
+        prog=prog,
+    ).parse_args(argv)
 
     if args.command == "schema":
         print(json.dumps(memory_json_schema(), indent=2))
@@ -707,11 +735,11 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_graphify_first,
         )
         from trufagent.experimental.fake_phase_adapter import ScriptedPhaseAdapter
+        from trufagent.experimental.promotion_fs import load_promotion_policy
         from trufagent.experimental.retry_gate import evaluate_supervised_retry
         from trufagent.experimental.shadow_phase_adapter import ShadowPhaseAdapter
         from trufagent.experimental.task_preview import FileTaskPreviewRepository
         from trufagent.experimental.usage_fs import JsonlUsageRepository, UsageLedgerError
-        from trufagent.infrastructure.promotion_fs import load_promotion_policy
 
         try:
             if args.delegation_command == "compile":
@@ -1282,6 +1310,11 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
             else:
+                from trufagent.experimental.codex_skill_surface import (
+                    apply_managed_skill_surface,
+                    plan_codex_skill_surface,
+                )
+
                 surface = plan_codex_skill_surface(repository.load(), args.skill_root)
                 if args.apply:
                     apply_managed_skill_surface(args.config, surface)
@@ -1316,26 +1349,26 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "promotion":
-        from trufagent.application.promotion import evaluate_promotion_readiness
-        from trufagent.infrastructure.pilot_fs import (
+        from trufagent.experimental.pilot_fs import (
             PilotLedgerError,
             PilotTaskKind,
             PilotTaskStatus,
             begin_pilot_task,
             finish_pilot_task,
         )
-        from trufagent.infrastructure.promotion_fs import (
+        from trufagent.experimental.promotion import evaluate_promotion_readiness
+        from trufagent.experimental.promotion_fs import (
             PromotionPolicyError,
             collect_promotion_facts,
             initialize_pilot_policy,
             load_promotion_policy,
         )
-        from trufagent.infrastructure.promotion_review import (
+        from trufagent.experimental.promotion_review import (
             PromotionReviewError,
             approve_promotion_review,
             create_promotion_review,
         )
-        from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
+        from trufagent.experimental.promotion_workspace import prepare_promotion_workspace
 
         try:
             if args.promotion_command == "init":

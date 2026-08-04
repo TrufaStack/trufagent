@@ -6,15 +6,15 @@ from tempfile import TemporaryDirectory
 import yaml
 from pydantic import ValidationError
 
-from trufagent.application.promotion import PromotionFacts, PromotionPolicy
 from trufagent.experimental.codex_shadow_runner import shadow_network_is_default_deny
 from trufagent.experimental.context_projection import (
     ContextProjectionError,
     create_context_projection,
 )
-from trufagent.infrastructure.pilot_fs import completed_pilot_task_count
-from trufagent.infrastructure.promotion_review import load_approved_review
-from trufagent.infrastructure.promotion_workspace import (
+from trufagent.experimental.pilot_fs import completed_pilot_task_count
+from trufagent.experimental.promotion import PromotionFacts, PromotionPolicy
+from trufagent.experimental.promotion_review import load_approved_review
+from trufagent.experimental.promotion_workspace import (
     load_promotion_workspace,
     operation_gate_is_enforced,
 )

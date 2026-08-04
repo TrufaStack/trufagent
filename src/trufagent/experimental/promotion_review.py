@@ -9,10 +9,10 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.infrastructure.memory_markdown import find_secret_shapes
-from trufagent.infrastructure.promotion_workspace import (
+from trufagent.experimental.promotion_workspace import (
     load_promotion_workspace,
 )
+from trufagent.infrastructure.memory_markdown import find_secret_shapes
 from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
 
 

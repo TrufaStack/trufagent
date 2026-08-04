@@ -2,17 +2,17 @@ from pathlib import Path
 
 import pytest
 
-from trufagent.infrastructure.promotion_fs import (
+from trufagent.experimental.promotion_fs import (
     collect_promotion_facts,
     initialize_pilot_policy,
     load_promotion_policy,
 )
-from trufagent.infrastructure.promotion_review import (
+from trufagent.experimental.promotion_review import (
     PromotionReviewError,
     approve_promotion_review,
     create_promotion_review,
 )
-from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
+from trufagent.experimental.promotion_workspace import prepare_promotion_workspace
 
 
 def _workspace(tmp_path: Path):

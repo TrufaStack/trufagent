@@ -1,7 +1,7 @@
 import json
 import shlex
 
-from trufagent.cli import main
+from trufagent.experimental.cli import main
 
 
 def test_personal_task_builds_compact_preview_without_intake_file(

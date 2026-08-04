@@ -8,8 +8,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trufagent.application.promotion import PromotionPolicy
 from trufagent.experimental.context_projection import create_context_projection
+from trufagent.experimental.promotion import PromotionPolicy
 from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
 
 
