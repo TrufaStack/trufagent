@@ -97,6 +97,17 @@ def test_retire_removes_memory_from_active_lifecycle(tmp_path: Path) -> None:
         service.retire(created.envelope.id, reviewer="user", reason="Again")
 
 
+def test_native_search_returns_only_relevant_active_memory(tmp_path: Path) -> None:
+    repository, _, service = setup(tmp_path)
+    active = proposal(service, "Active checklist decision")
+    retired = proposal(service, "Retired checklist decision")
+    service.retire(retired.envelope.id, reviewer="user", reason="No longer applicable")
+
+    found = repository.search("checklist", project="demo")
+
+    assert [item.envelope.id for item in found] == [active.envelope.id]
+
+
 def test_cli_propose_accept_and_retire_v2_memory(tmp_path: Path, capsys) -> None:
     document = tmp_path / "proposal.md"
     document.write_text(

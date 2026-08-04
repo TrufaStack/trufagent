@@ -65,6 +65,8 @@ class PrepareMemoryReference(BaseModel):
     title: str = Field(min_length=1)
     kind: str = Field(min_length=1)
     estimated_tokens: int = Field(ge=0)
+    memory_schema: Literal["trufagent.memory.v1", "trufagent.memory.v2"]
+    source_commit: str | None = None
 
 
 class PrepareGraphReference(BaseModel):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from pathlib import Path
 
 import yaml
@@ -107,6 +108,36 @@ class MarkdownMemoryRepositoryV2:
             if document.envelope.id == memory_id:
                 return document
         raise KeyError(memory_id)
+
+    def search(
+        self,
+        query: str,
+        *,
+        project: str | None = None,
+        limit: int = 10,
+    ) -> list[MemoryDocumentV2]:
+        if project is not None and project != self.project:
+            raise MemoryVaultError("search project must match v2 repository project")
+        terms = set(re.findall(r"\w+", query.casefold()))
+        ranked: list[tuple[int, MemoryDocumentV2]] = []
+        for document in self.documents():
+            if document.envelope.status not in {
+                MemoryStateV2.PROPOSED,
+                MemoryStateV2.ACCEPTED,
+            }:
+                continue
+            haystack = " ".join(
+                (
+                    document.envelope.title,
+                    " ".join(document.envelope.tags),
+                    document.body,
+                )
+            ).casefold()
+            score = sum(1 for term in terms if term in haystack)
+            if score:
+                ranked.append((score, document))
+        ranked.sort(key=lambda item: (-item[0], item[1].envelope.id))
+        return [document for _, document in ranked[:limit]]
 
     def append(self, event: MemoryEventV2) -> Path:
         current = self.read(event.memory_id)

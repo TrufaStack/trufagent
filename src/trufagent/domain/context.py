@@ -14,6 +14,8 @@ class ContextItem(BaseModel):
     governs_behavior: bool
     warnings: list[str] = Field(default_factory=list)
     estimated_tokens: int
+    memory_schema: str = "trufagent.memory.v1"
+    source_commit: str | None = None
 
 
 class ContextPacket(BaseModel):

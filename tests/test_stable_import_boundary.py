@@ -17,6 +17,8 @@ def test_importing_stable_cli_does_not_load_delegation_runtime() -> None:
         "trufagent.infrastructure.fake_phase_adapter",
         "trufagent.infrastructure.shadow_phase_adapter",
         "trufagent.infrastructure.usage_fs",
+        "trufagent.experimental.task_continuation",
+        "trufagent.experimental.task_preview",
     ]
     script = (
         "import json, sys; import trufagent.cli; "

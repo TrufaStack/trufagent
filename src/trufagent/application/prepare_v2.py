@@ -18,7 +18,7 @@ from trufagent.domain.prepare_v2 import (
     PrepareV2Result,
     SkillPhase,
 )
-from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
+from trufagent.infrastructure.memory_combined import CombinedMemoryRepository
 
 if TYPE_CHECKING:
     from trufagent.application.prepare_task import PreparedTask
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class PrepareV2Service:
     def __init__(
         self,
-        repository: MarkdownMemoryRepository,
+        repository: CombinedMemoryRepository,
         *,
         cartography,
         skills: InMemorySkillCatalog,
@@ -124,6 +124,8 @@ class PrepareV2Service:
                         title=item.title,
                         kind=item.kind.value,
                         estimated_tokens=item.estimated_tokens,
+                        memory_schema=item.memory_schema,
+                        source_commit=item.source_commit,
                     )
                     for item in context.items
                 ],
@@ -218,6 +220,8 @@ def project_prepare_v2(
                     title=item.title,
                     kind=item.kind.value,
                     estimated_tokens=item.estimated_tokens,
+                    memory_schema=item.memory_schema,
+                    source_commit=item.source_commit,
                 )
                 for item in context.items
             ],

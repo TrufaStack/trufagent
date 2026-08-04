@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from trufagent.application.plan_task import PlanTaskService
@@ -10,11 +11,14 @@ from trufagent.application.skill_catalog import InMemorySkillCatalog, SkillDescr
 from trufagent.application.task_extractor import TaskIntake
 from trufagent.cli import main
 from trufagent.domain.cartography import GraphQueryResult, GraphReference, GraphState
+from trufagent.domain.memory import MemoryKind
+from trufagent.domain.memory_v2 import MemoryDocumentV2, MemoryEnvelopeV2, MemoryStateV2
 from trufagent.domain.prepare_v2 import Complexity, PhaseEffort, PrepareStatus, SkillPhase
 from trufagent.domain.skills import SkillLocation
 from trufagent.domain.task import ModelTier
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
 from trufagent.infrastructure.memory_markdown import load_memory_markdown
+from trufagent.infrastructure.memory_v2_fs import MarkdownMemoryRepositoryV2
 
 FIXTURES = Path(__file__).parent / "fixtures" / "memory"
 
@@ -222,6 +226,47 @@ def test_v2_context_exposes_memory_references_without_bodies(tmp_path: Path) -> 
     assert result.context.memories
     assert result.context.memories[0].memory_id == "mem_C02_CHECKLIST_RISK"
     assert "body" not in result.model_dump(mode="json", by_alias=True)["context"]["memories"][0]
+
+
+def test_cli_prepare_combines_active_v1_and_v2_memory_with_provenance(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    config = tmp_path / ".trufagent/config.yaml"
+    config.parent.mkdir()
+    config.write_text("schema: trufagent.project.v1\nproject: jc-app\n")
+    legacy = MarkdownMemoryRepository(tmp_path, project="jc-app").initialize()
+    legacy.propose(load_memory_markdown(FIXTURES / "c02-checklist-risk.md"))
+    now = datetime(2026, 8, 4, tzinfo=UTC)
+    native = MarkdownMemoryRepositoryV2(tmp_path, project="jc-app").initialize()
+    native.propose(
+        MemoryDocumentV2(
+            envelope=MemoryEnvelopeV2(
+                schema="trufagent.memory.v2",
+                id="mem_native_checklist",
+                kind=MemoryKind.DECISION,
+                title="Keep native checklist context",
+                status=MemoryStateV2.PROPOSED,
+                project="jc-app",
+                created_at=now,
+                updated_at=now,
+                source_commit="abcdef123456",
+            ),
+            body="Checklist retrieval must include native v2 context.",
+        )
+    )
+    intake = tmp_path / "intake.json"
+    intake.write_text(json.dumps({"task": "Diagnose checklist retrieval."}))
+
+    exit_code = main(["prepare", str(intake), str(tmp_path)])
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    memories = {item["memory_id"]: item for item in output["context"]["memories"]}
+    assert set(memories) == {"mem_C02_CHECKLIST_RISK", "mem_native_checklist"}
+    assert memories["mem_C02_CHECKLIST_RISK"]["memory_schema"] == "trufagent.memory.v1"
+    assert memories["mem_native_checklist"]["memory_schema"] == "trufagent.memory.v2"
+    assert memories["mem_native_checklist"]["source_commit"] == "abcdef123456"
 
 
 def test_v2_context_exposes_traceable_graph_references(tmp_path: Path) -> None:

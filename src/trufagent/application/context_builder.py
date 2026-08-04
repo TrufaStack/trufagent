@@ -10,7 +10,7 @@ from trufagent.application.errors import CartographyUnavailableError
 from trufagent.domain.cartography import GraphQueryResult
 from trufagent.domain.context import ContextItem, ContextPacket
 from trufagent.domain.memory import MemoryDocument, Severity
-from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository
+from trufagent.domain.memory_v2 import MemoryDocumentV2
 
 
 class ContextRequest(BaseModel):
@@ -40,19 +40,40 @@ _SEVERITY_WEIGHT = {
 }
 
 
-def _tokens(document: MemoryDocument) -> int:
+MemoryContextDocument = MemoryDocument | MemoryDocumentV2
+
+
+class MemorySearchPort(Protocol):
+    def search(
+        self,
+        query: str,
+        *,
+        project: str | None = None,
+        limit: int = 10,
+        include_user: bool = False,
+    ) -> list[MemoryContextDocument]: ...
+
+
+def _tokens(document: MemoryContextDocument) -> int:
     return max(1, math.ceil((len(document.envelope.title) + len(document.body)) / 4))
 
 
-def _priority(document: MemoryDocument) -> tuple[int, str]:
+def _priority(document: MemoryContextDocument) -> tuple[int, str]:
     governing = 100 if document.envelope.governs_behavior else 0
-    return (governing + _SEVERITY_WEIGHT[document.envelope.severity], document.envelope.id)
+    severity = getattr(document.envelope, "severity", None)
+    return (governing + _SEVERITY_WEIGHT[severity], document.envelope.id)
+
+
+def _provenance(document: MemoryContextDocument) -> tuple[str, str | None]:
+    if isinstance(document, MemoryDocumentV2):
+        return document.envelope.schema_, document.envelope.source_commit
+    return document.envelope.schema_, document.envelope.validity.derived_from_commit
 
 
 class ContextBuilder:
     def __init__(
         self,
-        repository: MarkdownMemoryRepository,
+        repository: MemorySearchPort,
         *,
         cartography: CartographyQueryPort | None = None,
     ) -> None:
@@ -78,6 +99,7 @@ class ContextBuilder:
             warnings = []
             if not document.envelope.governs_behavior:
                 warnings.append("unreviewed or non-governing memory; treat as untrusted context")
+            memory_schema, source_commit = _provenance(document)
             items.append(
                 ContextItem(
                     memory_id=document.envelope.id,
@@ -87,6 +109,8 @@ class ContextBuilder:
                     governs_behavior=document.envelope.governs_behavior,
                     warnings=warnings,
                     estimated_tokens=cost,
+                    memory_schema=memory_schema,
+                    source_commit=source_commit,
                 )
             )
             used += cost
