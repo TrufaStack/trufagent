@@ -8,6 +8,7 @@ import yaml
 from pydantic import ValidationError
 
 from trufagent.domain.memory import MemoryDocument, MemoryEnvelope
+from trufagent.domain.memory_v2 import MemoryDocumentV2, MemoryEnvelopeV2, project_v1_memory
 
 _FRONTMATTER = re.compile(r"\A---\s*\n(?P<yaml>.*?)\n---\s*\n(?P<body>.*)\Z", re.DOTALL)
 _SECRET_PATTERNS = {
@@ -37,7 +38,7 @@ def find_secret_shapes(text: str) -> list[str]:
     return [name for name, pattern in _SECRET_PATTERNS.items() if pattern.search(text)]
 
 
-def parse_memory_markdown(text: str, *, source_path: str | None = None) -> MemoryDocument:
+def _parse_memory_parts(text: str) -> tuple[dict[str, Any], str]:
     matches = _FRONTMATTER.match(text)
     if not matches:
         raise MemoryFormatError("expected YAML frontmatter delimited by ---")
@@ -56,6 +57,11 @@ def parse_memory_markdown(text: str, *, source_path: str | None = None) -> Memor
     body = matches.group("body").strip()
     if not body:
         raise MemoryFormatError("memory body cannot be empty")
+    return raw, body
+
+
+def parse_memory_markdown(text: str, *, source_path: str | None = None) -> MemoryDocument:
+    raw, body = _parse_memory_parts(text)
 
     try:
         envelope = MemoryEnvelope.model_validate(raw)
@@ -67,3 +73,34 @@ def parse_memory_markdown(text: str, *, source_path: str | None = None) -> Memor
 
 def load_memory_markdown(path: Path) -> MemoryDocument:
     return parse_memory_markdown(path.read_text(encoding="utf-8"), source_path=str(path))
+
+
+def parse_memory_markdown_compatible(
+    text: str, *, source_path: str | None = None
+) -> MemoryDocumentV2:
+    """Read v1 or v2 Markdown into the compact v2 contract."""
+
+    raw, body = _parse_memory_parts(text)
+
+    try:
+        if raw.get("schema") == "trufagent.memory.v1":
+            return project_v1_memory(
+                MemoryDocument(
+                    envelope=MemoryEnvelope.model_validate(raw),
+                    body=body,
+                    source_path=source_path,
+                )
+            )
+        if raw.get("schema") == "trufagent.memory.v2":
+            return MemoryDocumentV2(
+                envelope=MemoryEnvelopeV2.model_validate(raw),
+                body=body,
+                source_path=source_path,
+            )
+    except ValidationError as exc:
+        raise MemoryFormatError(str(exc)) from exc
+    raise MemoryFormatError(f"unsupported memory schema: {raw.get('schema')!r}")
+
+
+def load_memory_markdown_compatible(path: Path) -> MemoryDocumentV2:
+    return parse_memory_markdown_compatible(path.read_text(encoding="utf-8"), source_path=str(path))
