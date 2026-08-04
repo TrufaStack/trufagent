@@ -14,25 +14,12 @@ import yaml
 from pydantic import ValidationError
 
 from trufagent.application.close_v2 import CloseV2Service
-from trufagent.application.delegation import (
-    CompileDelegationRequest,
-    compile_delegation_protocol,
-    compile_request,
-)
-from trufagent.application.delegation_executor import execute_dry_run
 from trufagent.application.evaluation import evaluate_suite, load_evaluation_suite
-from trufagent.application.exploration_gate import (
-    ExplorationDisposition,
-    evaluate_graphify_applicability,
-    evaluate_graphify_first,
-)
 from trufagent.application.memory_review import MemoryReviewService
 from trufagent.application.memory_v2 import MemoryV2Service
 from trufagent.application.plan_task import PlanTaskRequest, PlanTaskService
 from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
 from trufagent.application.prepare_v2 import project_prepare_v2
-from trufagent.application.promotion import evaluate_promotion_readiness
-from trufagent.application.retry_gate import evaluate_supervised_retry
 from trufagent.application.sessions import (
     EndSessionRequest,
     EndSessionService,
@@ -47,35 +34,17 @@ from trufagent.application.skill_sanitization import (
 )
 from trufagent.application.task_classifier import classify_task
 from trufagent.application.task_extractor import TaskIntake, extract_task_signals
-from trufagent.domain.attempt import AttemptStatus
 from trufagent.domain.close_v2 import CloseV2Request
-from trufagent.domain.delegation import (
-    ActionScope,
-    DelegationPhase,
-    DelegationProtocol,
-    DelegationStep,
-    PhaseHandoff,
-    UsageRecord,
-)
 from trufagent.domain.memory import MemoryReviewMetadata, memory_json_schema
 from trufagent.domain.skill_audit import SkillAuditReport
 from trufagent.domain.skill_sanitization import SkillSanitizationManifest
 from trufagent.domain.skill_sources import RemoteSkillRegistry
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
 from trufagent.domain.task_preview import TaskPreviewRecord
-from trufagent.infrastructure.attempt_fs import (
-    AttemptLedgerError,
-    JsonlAttemptRepository,
-)
-from trufagent.infrastructure.codex_shadow_runner import (
-    CodexShadowRunner,
-    ShadowProviderError,
-)
 from trufagent.infrastructure.codex_skill_surface import (
     apply_managed_skill_surface,
     plan_codex_skill_surface,
 )
-from trufagent.infrastructure.fake_phase_adapter import ScriptedPhaseAdapter
 from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter, GraphifyAdapterError
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository, MemoryVaultError
@@ -95,20 +64,7 @@ from trufagent.infrastructure.pilot_fs import (
     finish_pilot_task,
 )
 from trufagent.infrastructure.project_init import ProjectInitializationError, initialize_project
-from trufagent.infrastructure.promotion_fs import (
-    PromotionPolicyError,
-    collect_promotion_facts,
-    initialize_pilot_policy,
-    load_promotion_policy,
-)
-from trufagent.infrastructure.promotion_review import (
-    PromotionReviewError,
-    approve_promotion_review,
-    create_promotion_review,
-)
-from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
 from trufagent.infrastructure.session_fs import FileSessionRepository
-from trufagent.infrastructure.shadow_phase_adapter import ShadowPhaseAdapter
 from trufagent.infrastructure.skill_audit import audit_skill_catalog
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
 from trufagent.infrastructure.skill_discovery import SkillDiscovery, default_skill_roots
@@ -118,8 +74,10 @@ from trufagent.infrastructure.task_preview_fs import (
     FileTaskPreviewRepository,
     TaskPreviewError,
 )
-from trufagent.infrastructure.usage_fs import JsonlUsageRepository, UsageLedgerError
 from trufagent.infrastructure.worktree_fingerprint import fingerprint_worktree
+
+# Lazy injection point retained for the historical experimental shadow tests.
+CodexShadowRunner = None
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -791,6 +749,42 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "delegation":
+        from trufagent.application.delegation import (
+            CompileDelegationRequest,
+            compile_delegation_protocol,
+            compile_request,
+        )
+        from trufagent.application.delegation_executor import execute_dry_run
+        from trufagent.application.exploration_gate import (
+            ExplorationDisposition,
+            evaluate_graphify_applicability,
+            evaluate_graphify_first,
+        )
+        from trufagent.application.retry_gate import evaluate_supervised_retry
+        from trufagent.domain.attempt import AttemptStatus
+        from trufagent.domain.delegation import (
+            ActionScope,
+            DelegationPhase,
+            DelegationProtocol,
+            DelegationStep,
+            PhaseHandoff,
+            UsageRecord,
+        )
+        from trufagent.infrastructure.attempt_fs import (
+            AttemptLedgerError,
+            JsonlAttemptRepository,
+        )
+        from trufagent.infrastructure.codex_shadow_runner import (
+            CodexShadowRunner as NativeCodexShadowRunner,
+        )
+        from trufagent.infrastructure.codex_shadow_runner import (
+            ShadowProviderError,
+        )
+        from trufagent.infrastructure.fake_phase_adapter import ScriptedPhaseAdapter
+        from trufagent.infrastructure.promotion_fs import load_promotion_policy
+        from trufagent.infrastructure.shadow_phase_adapter import ShadowPhaseAdapter
+        from trufagent.infrastructure.usage_fs import JsonlUsageRepository, UsageLedgerError
+
         try:
             if args.delegation_command == "compile":
                 request = CompileDelegationRequest.model_validate_json(
@@ -924,7 +918,8 @@ def main(argv: list[str] | None = None) -> int:
                     action_scope=ActionScope.READ_ONLY,
                     max_attempts=1,
                 )
-                shadow_runner = CodexShadowRunner(
+                shadow_runner_type = CodexShadowRunner or NativeCodexShadowRunner
+                shadow_runner = shadow_runner_type(
                     project_root=args.project_root,
                     session_id=args.session,
                     task=args.task,
@@ -1391,6 +1386,20 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "promotion":
+        from trufagent.application.promotion import evaluate_promotion_readiness
+        from trufagent.infrastructure.promotion_fs import (
+            PromotionPolicyError,
+            collect_promotion_facts,
+            initialize_pilot_policy,
+            load_promotion_policy,
+        )
+        from trufagent.infrastructure.promotion_review import (
+            PromotionReviewError,
+            approve_promotion_review,
+            create_promotion_review,
+        )
+        from trufagent.infrastructure.promotion_workspace import prepare_promotion_workspace
+
         try:
             if args.promotion_command == "init":
                 path = initialize_pilot_policy(args.project_root)
