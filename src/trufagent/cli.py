@@ -13,11 +13,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from trufagent.application.close_v2 import CloseV2Service
 from trufagent.application.evaluation import evaluate_suite, load_evaluation_suite
-from trufagent.application.memory_review import MemoryReviewService
-from trufagent.application.memory_v2 import MemoryV2Service
-from trufagent.application.prepare_v2 import PrepareV2Service
 from trufagent.application.sessions import (
     EndSessionRequest,
     EndSessionService,
@@ -32,25 +28,14 @@ from trufagent.application.skill_sanitization import (
 )
 from trufagent.application.task_classifier import classify_task
 from trufagent.application.task_extractor import TaskIntake, extract_task_signals
-from trufagent.domain.close_v2 import CloseV2Request
-from trufagent.domain.memory import MemoryReviewMetadata, memory_json_schema
+from trufagent.domain.memory import memory_json_schema
 from trufagent.domain.skill_audit import SkillAuditReport
 from trufagent.domain.skill_sanitization import SkillSanitizationManifest
 from trufagent.domain.skill_sources import RemoteSkillRegistry
 from trufagent.domain.task import ModelRouting, ModelTier, TaskKind, TaskSignals
-from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter, GraphifyAdapterError
-from trufagent.infrastructure.memory_combined import CombinedMemoryRepository
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository, MemoryVaultError
-from trufagent.infrastructure.memory_index import SqliteMemoryIndex
-from trufagent.infrastructure.memory_markdown import (
-    MemoryFormatError,
-    load_memory_markdown,
-    load_memory_markdown_compatible,
-)
-from trufagent.infrastructure.memory_v2_fs import MarkdownMemoryRepositoryV2
 from trufagent.infrastructure.model_profiles import Harness, resolve_project_model
-from trufagent.infrastructure.project_init import ProjectInitializationError, initialize_project
 from trufagent.infrastructure.session_fs import FileSessionRepository
 from trufagent.infrastructure.skill_audit import audit_skill_catalog
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
@@ -183,17 +168,21 @@ def _build_parser(
     retire_memory.add_argument("--reviewer", required=True)
     retire_memory.add_argument("--reason", required=True)
 
-    cartography = subcommands.add_parser("cartography", help="Graphify cartography operations")
-    cartography_subcommands = cartography.add_subparsers(dest="cartography_command", required=True)
-    status = cartography_subcommands.add_parser("status", help="Inspect graph freshness")
+    graph = subcommands.add_parser(
+        "graph",
+        aliases=["cartography"],
+        help="Graphify structural cartography operations",
+    )
+    graph_subcommands = graph.add_subparsers(dest="graph_command", required=True)
+    status = graph_subcommands.add_parser("status", help="Inspect graph freshness")
     status.add_argument("project_root", type=Path)
-    update = cartography_subcommands.add_parser("update", help="Update the local AST graph")
+    update = graph_subcommands.add_parser("update", help="Update the local AST graph")
     update.add_argument("project_root", type=Path)
-    query = cartography_subcommands.add_parser("query", help="Query a scoped structural graph")
+    query = graph_subcommands.add_parser("query", help="Query a scoped structural graph")
     query.add_argument("project_root", type=Path)
     query.add_argument("question")
     query.add_argument("--budget", type=int, default=2_000)
-    affected = cartography_subcommands.add_parser("affected", help="Find reverse impact")
+    affected = graph_subcommands.add_parser("affected", help="Find reverse impact")
     affected.add_argument("project_root", type=Path)
     affected.add_argument("label")
     affected.add_argument("--relation", action="append", default=[])
@@ -559,36 +548,6 @@ def _prepare_from_files(
     )
 
 
-def _prepare_v2_from_files(
-    intake_path: Path,
-    project_root: Path,
-    *,
-    project_override: str | None,
-    catalog_override: Path | None,
-    harness: Harness | None = None,
-):
-    project = _project(project_root, project_override)
-    intake = TaskIntake.model_validate_json(intake_path.read_text(encoding="utf-8"))
-    repository = MarkdownMemoryRepository(
-        project_root,
-        project=project,
-        user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
-    ).initialize()
-    return PrepareV2Service(
-        CombinedMemoryRepository(
-            repository,
-            MarkdownMemoryRepositoryV2(project_root, project=project).initialize(),
-        ),
-        cartography=GraphifyAdapter(),
-        skills=_runtime_catalog(project_root, catalog_override),
-    ).prepare(
-        intake,
-        project=project,
-        project_root=project_root,
-        harness=harness.value if harness else None,
-    )
-
-
 def _shadow_schema_path() -> Path:
     path = Path(__file__).resolve().parent / "schemas" / "handoff-schema.json"
     if not path.is_file():
@@ -612,54 +571,14 @@ def main(
         return 0
 
     if args.command == "prepare":
-        try:
-            result = _prepare_v2_from_files(
-                args.intake,
-                args.project_root,
-                project_override=args.project,
-                catalog_override=args.catalog,
-                harness=Harness(args.harness) if args.harness else None,
-            )
-        except (OSError, ValueError, ValidationError, MemoryVaultError) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(result.model_dump_json(by_alias=True))
-        return 0
+        from trufagent.commands.prepare import run
+
+        return run(args, project_resolver=_project, catalog_loader=_runtime_catalog)
 
     if args.command == "close":
-        try:
-            project = _project(args.project_root, args.project)
-            repository = MarkdownMemoryRepository(
-                args.project_root,
-                project=project,
-                user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
-            ).initialize()
-            request = CloseV2Request.model_validate_json(
-                args.request.read_text(encoding="utf-8")
-            )
-            result = CloseV2Service(
-                MarkdownMemoryRepositoryV2(
-                    args.project_root, project=project
-                ).initialize(),
-                repository,
-                SqliteMemoryIndex(
-                    Path(args.project_root) / ".trufagent" / "memory-index.sqlite3"
-                ),
-                GitMergeVerifier(),
-                GraphifyAdapter(),
-                project=project,
-            ).close(args.project_root, request)
-        except (
-            OSError,
-            ValueError,
-            ValidationError,
-            GraphifyAdapterError,
-            MemoryVaultError,
-        ) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(result.model_dump_json(by_alias=True))
-        return 0
+        from trufagent.commands.close import run
+
+        return run(args, project_resolver=_project)
 
     if args.command == "task-continue":
         from trufagent.experimental.task_continuation import continue_task
@@ -691,17 +610,9 @@ def main(
         return int(report.pass_rate < args.fail_under)
 
     if args.command == "models":
-        try:
-            result = resolve_project_model(
-                args.project_root,
-                Harness(args.harness),
-                ModelTier(args.tier),
-            )
-        except (OSError, ValueError, ValidationError, yaml.YAMLError) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(result.model_dump_json())
-        return 0
+        from trufagent.commands.models import run
+
+        return run(args)
 
     if args.command == "delegation":
         from trufagent.experimental.attempt import AttemptStatus
@@ -1054,29 +965,10 @@ def main(
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
 
-    if args.command == "cartography":
-        cartography = GraphifyAdapter()
-        try:
-            if args.cartography_command == "status":
-                result = cartography.status(args.project_root)
-            elif args.cartography_command == "update":
-                result = cartography.update(args.project_root)
-            elif args.cartography_command == "query":
-                result = cartography.query(
-                    args.project_root, args.question, token_budget=args.budget
-                )
-            else:
-                result = cartography.affected(
-                    args.project_root,
-                    args.label,
-                    relations=args.relation,
-                    depth=args.depth,
-                )
-        except (OSError, GraphifyAdapterError) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(result.model_dump_json())
-        return 0
+    if args.command in {"graph", "cartography"}:
+        from trufagent.commands.graph import run
+
+        return run(args)
 
     if args.command == "plan" and args.plan_command == "classify":
         try:
@@ -1336,17 +1228,9 @@ def main(
         return 0
 
     if args.command == "init":
-        try:
-            config = initialize_project(
-                args.project_root,
-                project=args.project,
-                catalog_path=args.catalog,
-            )
-        except (OSError, ValueError, MemoryVaultError, ProjectInitializationError) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(json.dumps({"status": "success", "config": str(config)}))
-        return 0
+        from trufagent.commands.init import run
+
+        return run(args)
 
     if args.command == "promotion":
         from trufagent.experimental.pilot_fs import (
@@ -1447,66 +1331,10 @@ def main(
             return 1
         return 0
 
-    if args.command == "memory" and args.memory_command == "validate":
-        try:
-            document = load_memory_markdown_compatible(args.path)
-        except (OSError, MemoryFormatError) as exc:
-            print(f"error: {exc}", file=sys.stderr)
-            return 1
-        print(
-            json.dumps(
-                {
-                    "status": "success",
-                    "summary": f"valid memory: {document.envelope.id}",
-                    "next_actions": [],
-                    "artifacts": [str(args.path)],
-                }
-            )
-        )
-        return 0
+    if args.command == "memory":
+        from trufagent.commands.memory import run
 
-    if args.command == "memory" and args.memory_command == "propose":
-        repository = MarkdownMemoryRepository(
-            args.project_root,
-            project=args.project,
-            user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
-        ).initialize()
-        try:
-            raw = args.document.read_text(encoding="utf-8")
-            parts = raw.split("---", 2)
-            if len(parts) != 3:
-                raise MemoryFormatError("expected YAML frontmatter delimited by ---")
-            frontmatter = yaml.safe_load(parts[1])
-            if not isinstance(frontmatter, dict):
-                raise MemoryFormatError("frontmatter must be a YAML mapping")
-            schema = frontmatter.get("schema")
-            if schema == "trufagent.memory.v2":
-                document = load_memory_markdown_compatible(args.document)
-                v2_repository = MarkdownMemoryRepositoryV2(
-                    args.project_root, project=args.project
-                ).initialize()
-                path = v2_repository.propose(document)
-                SqliteMemoryIndex(
-                    Path(args.project_root) / ".trufagent" / "memory-index.sqlite3"
-                ).rebuild([*repository.documents(), *v2_repository.documents()])
-            else:
-                document = load_memory_markdown(args.document)
-                if document.envelope.status.value != "proposed":
-                    raise ValueError("memory propose requires status proposed")
-                path = repository.propose(document)
-        except (
-            OSError,
-            ValueError,
-            MemoryFormatError,
-            MemoryVaultError,
-            yaml.YAMLError,
-        ) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        print(
-            json.dumps({"status": "proposed", "memory_id": document.envelope.id, "path": str(path)})
-        )
-        return 0
+        return run(args)
 
     if args.command == "task":
         from trufagent.application.plan_task import PlanTaskService
@@ -1683,125 +1511,6 @@ def main(
         ) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
-
-    if args.command == "memory":
-        repository = MarkdownMemoryRepository(
-            args.project_root,
-            project=args.project,
-            user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
-        ).initialize()
-        index = SqliteMemoryIndex(Path(args.project_root) / ".trufagent" / "memory-index.sqlite3")
-        review = MemoryReviewService(repository, index=index)
-        v2_repository = MarkdownMemoryRepositoryV2(
-            args.project_root, project=args.project
-        ).initialize()
-        review_v2 = MemoryV2Service(
-            v2_repository,
-            index=index,
-            legacy_documents=repository.documents,
-        )
-        try:
-            if args.memory_command == "list":
-                documents = [*repository.documents(), *v2_repository.documents()]
-                if args.status:
-                    documents = [
-                        document
-                        for document in documents
-                        if document.envelope.status.value == args.status
-                    ]
-                print(
-                    json.dumps(
-                        [
-                            {
-                                "id": document.envelope.id,
-                                "title": document.envelope.title,
-                                "kind": document.envelope.kind.value,
-                                "status": document.envelope.status.value,
-                                "governs": document.envelope.governs_behavior,
-                            }
-                            for document in documents
-                        ]
-                    )
-                )
-            elif args.memory_command == "show":
-                try:
-                    document = v2_repository.read(args.memory_id)
-                except KeyError:
-                    document = repository.read(args.memory_id)
-                print(document.model_dump_json())
-            elif args.memory_command == "history":
-                try:
-                    events = v2_repository.events(args.memory_id)
-                    v2_repository.read(args.memory_id)
-                except KeyError:
-                    events = review.history(args.memory_id)
-                print(
-                    json.dumps(
-                        [
-                            event.model_dump(by_alias=True, mode="json")
-                            for event in events
-                        ]
-                    )
-                )
-            elif args.memory_command == "accept":
-                try:
-                    v2_repository.read(args.memory_id)
-                except KeyError:
-                    metadata = (
-                        MemoryReviewMetadata.model_validate_json(
-                            args.metadata.read_text(encoding="utf-8")
-                        )
-                        if args.metadata
-                        else None
-                    )
-                    result = review.accept(
-                        args.memory_id,
-                        reviewer=args.reviewer,
-                        metadata=metadata,
-                    )
-                else:
-                    if args.metadata:
-                        raise ValueError("v2 accept does not use extended metadata")
-                    result = review_v2.accept(args.memory_id, reviewer=args.reviewer)
-                print(result.model_dump_json())
-            elif args.memory_command == "replace":
-                print(
-                    review_v2.replace(
-                        args.memory_id,
-                        replacement_id=args.replacement_id,
-                        reviewer=args.reviewer,
-                        reason=args.reason,
-                    ).model_dump_json()
-                )
-            elif args.memory_command == "retire":
-                print(
-                    review_v2.retire(
-                        args.memory_id,
-                        reviewer=args.reviewer,
-                        reason=args.reason,
-                    ).model_dump_json()
-                )
-            elif args.memory_command == "reject":
-                print(
-                    review.reject(
-                        args.memory_id,
-                        reviewer=args.reviewer,
-                        reason=args.reason,
-                    ).model_dump_json()
-                )
-            else:
-                print(
-                    review.supersede(
-                        args.memory_id,
-                        replacement_id=args.replacement_id,
-                        reviewer=args.reviewer,
-                        reason=args.reason,
-                    ).model_dump_json()
-                )
-        except (OSError, KeyError, ValueError, MemoryVaultError) as exc:
-            print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
-            return 1
-        return 0
 
     return 2
 

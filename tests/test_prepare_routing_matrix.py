@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-import trufagent.cli as cli_module
+import trufagent.commands.prepare as prepare_command
 from trufagent.cli import main
 from trufagent.domain.cartography import GraphQueryResult, GraphReference, GraphState
 from trufagent.infrastructure.skill_catalog_fs import SkillCatalogRepository
@@ -137,7 +137,7 @@ def test_prepare_cli_routing_matrix(
     graph,
 ) -> None:
     MatrixCartography.calls = []
-    monkeypatch.setattr(cli_module, "GraphifyAdapter", MatrixCartography)
+    monkeypatch.setattr(prepare_command, "GraphifyAdapter", MatrixCartography)
     catalog = _catalog(tmp_path)
     intake = tmp_path / "intake.json"
     intake.write_text(json.dumps({"task": task, "signal_overrides": overrides}), encoding="utf-8")

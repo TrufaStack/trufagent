@@ -19,9 +19,16 @@ def test_stable_cli_excludes_historical_and_global_management_commands() -> None
     commands = _choices(parser)
 
     assert {"task", "task-continue", "delegation", "promotion"}.isdisjoint(commands)
-    assert {"prepare", "close", "memory", "cartography", "models", "skills", "init"} <= set(
-        commands
-    )
+    assert {
+        "prepare",
+        "close",
+        "memory",
+        "graph",
+        "cartography",
+        "models",
+        "skills",
+        "init",
+    } <= set(commands)
     assert set(_choices(commands["skills"])) == {"list", "search"}
     help_text = parser.format_help()
     assert "delegation" not in help_text

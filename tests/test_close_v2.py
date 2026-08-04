@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import trufagent.cli as cli_module
+import trufagent.commands.close as close_command
 from trufagent.application.close_v2 import CloseV2Service
 from trufagent.cli import main
 from trufagent.domain.cartography import GraphState, GraphStatus
@@ -148,9 +148,9 @@ def test_close_cli_emits_compact_v2_result(tmp_path: Path, monkeypatch, capsys) 
     config.write_text("schema: trufagent.project.v1\nproject: demo\n")
     request = tmp_path / "close.json"
     request.write_text(_request().model_dump_json(), encoding="utf-8")
-    monkeypatch.setattr(cli_module, "GitMergeVerifier", lambda: Merge(True))
+    monkeypatch.setattr(close_command, "GitMergeVerifier", lambda: Merge(True))
     monkeypatch.setattr(
-        cli_module, "GraphifyAdapter", lambda: Cartography(GraphState.FRESH)
+        close_command, "GraphifyAdapter", lambda: Cartography(GraphState.FRESH)
     )
 
     assert main(["close", str(request), str(tmp_path)]) == 0

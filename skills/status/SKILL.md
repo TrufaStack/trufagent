@@ -10,7 +10,7 @@ Run these read-only checks from the project root:
 ```bash
 uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent session status .
 uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent memory list .
-uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent cartography status .
+uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent graph status .
 uv run --project "${CLAUDE_PLUGIN_ROOT}" trufagent skills list
 ```
 
