@@ -70,6 +70,44 @@ class MemoryDocumentV2(BaseModel):
     source_path: str | None = None
 
 
+class MemoryActionV2(StrEnum):
+    ACCEPT = "accept"
+    REPLACE = "replace"
+    RETIRE = "retire"
+
+
+class MemoryEventV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_: str = Field(alias="schema", pattern=r"^trufagent\.memory-event\.v2$")
+    event_id: str = Field(pattern=r"^rev_[a-f0-9]{16,64}$")
+    memory_id: str
+    action: MemoryActionV2
+    reviewer: str = Field(min_length=1, max_length=80)
+    created_at: datetime
+    replacement_id: str | None = None
+    reason: str | None = None
+
+    @field_validator("reviewer")
+    @classmethod
+    def reviewer_is_not_blank(cls, reviewer: str) -> str:
+        if not reviewer.strip():
+            raise ValueError("reviewer is required")
+        return reviewer
+
+    @model_validator(mode="after")
+    def validate_action(self) -> MemoryEventV2:
+        if self.action == MemoryActionV2.REPLACE and not self.replacement_id:
+            raise ValueError("replace requires replacement_id")
+        if self.action != MemoryActionV2.REPLACE and self.replacement_id is not None:
+            raise ValueError("replacement_id is only valid for replace")
+        if self.action in {MemoryActionV2.REPLACE, MemoryActionV2.RETIRE} and not (
+            self.reason and self.reason.strip()
+        ):
+            raise ValueError(f"{self.action.value} requires reason")
+        return self
+
+
 def project_v1_memory(document: MemoryDocument) -> MemoryDocumentV2:
     states = {
         MemoryStatus.PROPOSED: MemoryStateV2.PROPOSED,

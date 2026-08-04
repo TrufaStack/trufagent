@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from trufagent.domain.memory import MemoryDocument
+from trufagent.domain.memory_v2 import MemoryDocumentV2
 
 
 class MemorySearchHit(BaseModel):
@@ -26,7 +27,7 @@ class SqliteMemoryIndex:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         return sqlite3.connect(self.path)
 
-    def rebuild(self, documents: Iterable[MemoryDocument]) -> int:
+    def rebuild(self, documents: Iterable[MemoryDocument | MemoryDocumentV2]) -> int:
         rows = list(documents)
         with self._connect() as connection:
             connection.execute("DROP TABLE IF EXISTS memories")
@@ -61,7 +62,9 @@ class SqliteMemoryIndex:
                             + item.envelope.applies_when.symbols
                             + item.envelope.applies_when.technologies
                             + item.envelope.applies_when.operations
-                        ),
+                        )
+                        if isinstance(item, MemoryDocument)
+                        else "",
                     )
                     for item in rows
                 ],
@@ -80,7 +83,7 @@ class SqliteMemoryIndex:
                 FROM memories
                 WHERE memories MATCH ?
                   AND (project = ? OR project = '*')
-                  AND status NOT IN ('rejected', 'superseded', 'stale')
+                  AND status NOT IN ('rejected', 'superseded', 'stale', 'replaced', 'retired')
                 ORDER BY bm25(memories), memory_id
                 LIMIT ?
                 """,

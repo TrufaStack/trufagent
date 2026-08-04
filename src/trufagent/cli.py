@@ -27,6 +27,7 @@ from trufagent.application.exploration_gate import (
     evaluate_graphify_first,
 )
 from trufagent.application.memory_review import MemoryReviewService
+from trufagent.application.memory_v2 import MemoryV2Service
 from trufagent.application.plan_task import PlanTaskRequest, PlanTaskService
 from trufagent.application.prepare_task import PrepareTaskRequest, PrepareTaskService
 from trufagent.application.prepare_v2 import project_prepare_v2
@@ -79,7 +80,12 @@ from trufagent.infrastructure.git_merge import GitMergeVerifier
 from trufagent.infrastructure.graphify_adapter import GraphifyAdapter, GraphifyAdapterError
 from trufagent.infrastructure.memory_fs import MarkdownMemoryRepository, MemoryVaultError
 from trufagent.infrastructure.memory_index import SqliteMemoryIndex
-from trufagent.infrastructure.memory_markdown import MemoryFormatError, load_memory_markdown
+from trufagent.infrastructure.memory_markdown import (
+    MemoryFormatError,
+    load_memory_markdown,
+    load_memory_markdown_compatible,
+)
+from trufagent.infrastructure.memory_v2_fs import MarkdownMemoryRepositoryV2
 from trufagent.infrastructure.model_profiles import Harness, resolve_project_model
 from trufagent.infrastructure.pilot_fs import (
     PilotLedgerError,
@@ -207,6 +213,19 @@ def _build_parser() -> argparse.ArgumentParser:
     supersede_memory.add_argument("--project", required=True)
     supersede_memory.add_argument("--reviewer", required=True)
     supersede_memory.add_argument("--reason", required=True)
+    replace_memory = memory_subcommands.add_parser("replace", help="Replace accepted v2 memory")
+    replace_memory.add_argument("project_root", type=Path)
+    replace_memory.add_argument("memory_id")
+    replace_memory.add_argument("--with", dest="replacement_id", required=True)
+    replace_memory.add_argument("--project", required=True)
+    replace_memory.add_argument("--reviewer", required=True)
+    replace_memory.add_argument("--reason", required=True)
+    retire_memory = memory_subcommands.add_parser("retire", help="Retire active v2 memory")
+    retire_memory.add_argument("project_root", type=Path)
+    retire_memory.add_argument("memory_id")
+    retire_memory.add_argument("--project", required=True)
+    retire_memory.add_argument("--reviewer", required=True)
+    retire_memory.add_argument("--reason", required=True)
 
     cartography = subcommands.add_parser("cartography", help="Graphify cartography operations")
     cartography_subcommands = cartography.add_subparsers(dest="cartography_command", required=True)
@@ -1444,7 +1463,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "memory" and args.memory_command == "validate":
         try:
-            document = load_memory_markdown(args.path)
+            document = load_memory_markdown_compatible(args.path)
         except (OSError, MemoryFormatError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
@@ -1467,11 +1486,35 @@ def main(argv: list[str] | None = None) -> int:
             user_memory_root=Path.home() / ".trufagent" / "memory" / "user",
         ).initialize()
         try:
-            document = load_memory_markdown(args.document)
-            if document.envelope.status.value != "proposed":
-                raise ValueError("memory propose requires status proposed")
-            path = repository.propose(document)
-        except (OSError, ValueError, MemoryFormatError, MemoryVaultError) as exc:
+            raw = args.document.read_text(encoding="utf-8")
+            parts = raw.split("---", 2)
+            if len(parts) != 3:
+                raise MemoryFormatError("expected YAML frontmatter delimited by ---")
+            frontmatter = yaml.safe_load(parts[1])
+            if not isinstance(frontmatter, dict):
+                raise MemoryFormatError("frontmatter must be a YAML mapping")
+            schema = frontmatter.get("schema")
+            if schema == "trufagent.memory.v2":
+                document = load_memory_markdown_compatible(args.document)
+                v2_repository = MarkdownMemoryRepositoryV2(
+                    args.project_root, project=args.project
+                ).initialize()
+                path = v2_repository.propose(document)
+                SqliteMemoryIndex(
+                    Path(args.project_root) / ".trufagent" / "memory-index.sqlite3"
+                ).rebuild([*repository.documents(), *v2_repository.documents()])
+            else:
+                document = load_memory_markdown(args.document)
+                if document.envelope.status.value != "proposed":
+                    raise ValueError("memory propose requires status proposed")
+                path = repository.propose(document)
+        except (
+            OSError,
+            ValueError,
+            MemoryFormatError,
+            MemoryVaultError,
+            yaml.YAMLError,
+        ) as exc:
             print(json.dumps({"status": "error", "summary": str(exc)}), file=sys.stderr)
             return 1
         print(
@@ -1656,9 +1699,17 @@ def main(argv: list[str] | None = None) -> int:
         ).initialize()
         index = SqliteMemoryIndex(Path(args.project_root) / ".trufagent" / "memory-index.sqlite3")
         review = MemoryReviewService(repository, index=index)
+        v2_repository = MarkdownMemoryRepositoryV2(
+            args.project_root, project=args.project
+        ).initialize()
+        review_v2 = MemoryV2Service(
+            v2_repository,
+            index=index,
+            legacy_documents=repository.documents,
+        )
         try:
             if args.memory_command == "list":
-                documents = repository.documents()
+                documents = [*repository.documents(), *v2_repository.documents()]
                 if args.status:
                     documents = [
                         document
@@ -1680,29 +1731,61 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
             elif args.memory_command == "show":
-                print(repository.read(args.memory_id).model_dump_json())
+                try:
+                    document = v2_repository.read(args.memory_id)
+                except KeyError:
+                    document = repository.read(args.memory_id)
+                print(document.model_dump_json())
             elif args.memory_command == "history":
+                try:
+                    events = v2_repository.events(args.memory_id)
+                    v2_repository.read(args.memory_id)
+                except KeyError:
+                    events = review.history(args.memory_id)
                 print(
                     json.dumps(
                         [
                             event.model_dump(by_alias=True, mode="json")
-                            for event in review.history(args.memory_id)
+                            for event in events
                         ]
                     )
                 )
             elif args.memory_command == "accept":
-                metadata = (
-                    MemoryReviewMetadata.model_validate_json(
-                        args.metadata.read_text(encoding="utf-8")
+                try:
+                    v2_repository.read(args.memory_id)
+                except KeyError:
+                    metadata = (
+                        MemoryReviewMetadata.model_validate_json(
+                            args.metadata.read_text(encoding="utf-8")
+                        )
+                        if args.metadata
+                        else None
                     )
-                    if args.metadata
-                    else None
-                )
-                print(
-                    review.accept(
+                    result = review.accept(
                         args.memory_id,
                         reviewer=args.reviewer,
                         metadata=metadata,
+                    )
+                else:
+                    if args.metadata:
+                        raise ValueError("v2 accept does not use extended metadata")
+                    result = review_v2.accept(args.memory_id, reviewer=args.reviewer)
+                print(result.model_dump_json())
+            elif args.memory_command == "replace":
+                print(
+                    review_v2.replace(
+                        args.memory_id,
+                        replacement_id=args.replacement_id,
+                        reviewer=args.reviewer,
+                        reason=args.reason,
+                    ).model_dump_json()
+                )
+            elif args.memory_command == "retire":
+                print(
+                    review_v2.retire(
+                        args.memory_id,
+                        reviewer=args.reviewer,
+                        reason=args.reason,
                     ).model_dump_json()
                 )
             elif args.memory_command == "reject":
